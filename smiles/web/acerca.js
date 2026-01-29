@@ -1,325 +1,319 @@
 import './acerca.css';
 import $ from 'jquery';
-import { wiVista } from '../widev.js';
+import { app } from '../wii.js';
 
-// Curiosidades fascinantes sobre los ojos
-const curiosidades = [
-  {
-    emoji: '⚡',
-    title: 'Músculo Más Rápido',
-    desc: 'Los músculos que controlan el parpadeo son los más rápidos del cuerpo humano. Puedes parpadear 5 veces por segundo. ¡Eso es 28,800 veces al día!'
-  },
-  {
-    emoji: '🎨',
-    title: '10 Millones de Colores',
-    desc: 'El ojo humano puede distinguir aproximadamente 10 millones de colores diferentes. Cada persona ve los colores ligeramente diferente.'
-  },
-  {
-    emoji: '🔍',
-    title: 'Iris Único',
-    desc: 'Tu iris es más único que tu huella dactilar. Tiene 256 características únicas vs 40 de las huellas. Por eso se usa en seguridad biométrica.'
-  },
-  {
-    emoji: '💧',
-    title: 'Lágrimas Complejas',
-    desc: 'Las lágrimas tienen 3 capas: aceite, agua y mucosa. Las lágrimas emocionales tienen diferentes proteínas que las lágrimas de irritación.'
-  },
-  {
-    emoji: '🧠',
-    title: 'Conexión Cerebral',
-    desc: 'Más del 50% de la corteza cerebral está involucrada en el procesamiento visual. Tus ojos envían información al cerebro a 120 metros por segundo.'
-  },
-  {
-    emoji: '👶',
-    title: 'Bebés y Lágrimas',
-    desc: 'Los bebés no producen lágrimas hasta las 4-13 semanas de edad. Nacen con ojos del 75% del tamaño adulto, pero siguen creciendo.'
-  },
-  {
-    emoji: '🌈',
-    title: 'Visión Nocturna',
-    desc: 'En completa oscuridad, tus ojos pueden detectar la llama de una vela a 1.6 km de distancia. Los bastones son 500 veces más sensibles que los conos.'
-  },
-  {
-    emoji: '🎯',
-    title: 'Enfoque Automático',
-    desc: 'Tus ojos hacen movimientos sacádicos (saltos rápidos) 3-4 veces por segundo para construir una imagen completa. Tu cerebro edita las partes borrosas.'
-  },
-  {
-    emoji: '⏱️',
-    title: 'Procesamiento Instantáneo',
-    desc: 'Tu cerebro puede procesar una imagen en solo 13 milisegundos. Eso es 75 veces más rápido que un parpadeo.'
-  }
-];
-
-// Misión del proyecto
-const misionProyecto = [
-  {
-    icon: '💙',
-    title: 'Amor por tus Ojitos',
-    desc: 'Compartir conocimiento que ayude a prevenir problemas visuales y mejorar la calidad de vida de las personas.'
-  },
-  {
-    icon: '📚',
-    title: 'Educación Accesible',
-    desc: 'Hacer que la información oftalmológica profesional sea fácil de entender y accesible para todos.'
-  },
-  {
-    icon: '🙏',
-    title: 'Fe y Esperanza',
-    desc: 'Recordar que con Dios todo es posible. Nunca pierdas la fe en tu recuperación y cuidado visual.'
-  }
-];
-
-// Consejos finales
-const consejosFinales = [
-  {
-    icon: 'fa-calendar-check',
-    title: 'Exámenes Regulares',
-    desc: 'Visita al oftalmólogo anualmente, incluso si no tienes síntomas. La detección temprana salva tu visión.'
-  },
-  {
-    icon: 'fa-sun',
-    title: 'Protección UV',
-    desc: 'Usa lentes de sol con protección UV 100% siempre que estés al aire libre. El daño UV es acumulativo e irreversible.'
-  },
-  {
-    icon: 'fa-mobile-screen',
-    title: 'Descansos Digitales',
-    desc: 'Aplica la regla 20-20-20 religiosamente. Tus ojos necesitan descansos frecuentes de las pantallas.'
-  },
-  {
-    icon: 'fa-apple-whole',
-    title: 'Nutrición Balanceada',
-    desc: 'Come alimentos ricos en vitaminas A, C, E y Omega-3 diariamente. Tu dieta impacta directamente tu visión.'
-  },
-  {
-    icon: 'fa-bed',
-    title: 'Sueño Reparador',
-    desc: 'Duerme 7-8 horas. Durante el sueño, tus ojos se limpian, reparan y recuperan de la fatiga del día.'
-  },
-  {
-    icon: 'fa-heart-pulse',
-    title: 'Escucha tu Cuerpo',
-    desc: 'No ignores síntomas como visión borrosa, dolor, destellos o moscas volantes. Consulta inmediatamente.'
-  }
-];
-
+// 🎨 HTML
 export const render = () => `
-  <div class="acerca_container">
-    <!-- HERO SECTION -->
-    <section class="acer_hero">
-      <h1>👁️💙 Love Eye</h1>
-      <p>
-        Un proyecto nacido del amor, la fe y el deseo de ayudar a otros a cuidar 
-        el regalo más preciado: la visión. Porque tus ojitos merecen todo el amor del mundo.
-      </p>
-      <img src="${import.meta.env.BASE_URL}acerca.png" alt="Curiosidades del Ojo" class="acer_hero_img" loading="lazy">
-    </section>
-
-    <!-- CURIOSIDADES -->
-    <section class="curiosidades_section">
-      <div class="section_header">
-        <h2 class="section_title">
-          <i class="fas fa-lightbulb"></i>
-          Curiosidades Fascinantes del Ojo
-        </h2>
-        <p class="section_subtitle">
-          Datos increíbles que probablemente no sabías sobre tus ojos
-        </p>
-        <div class="section_line"></div>
-      </div>
-      <div class="curiosidades_grid">
-        ${curiosidades.map(curiosidad => `
-          <div class="curiosidad_card">
-            <span class="curiosidad_emoji">${curiosidad.emoji}</span>
-            <h3 class="curiosidad_title">${curiosidad.title}</h3>
-            <p class="curiosidad_desc">${curiosidad.desc}</p>
-          </div>
-        `).join('')}
-      </div>
-    </section>
-
-    <!-- PROYECTO -->
-    <section class="proyecto_section">
-      <div class="section_header">
-        <h2 class="section_title">
-          <i class="fas fa-heart"></i>
-          Acerca del Proyecto
-        </h2>
-        <p class="section_subtitle">
-          La historia detrás de Love Eye
-        </p>
-        <div class="section_line"></div>
-      </div>
-      <div class="proyecto_content">
-        <div class="proyecto_historia">
-          <h3><i class="fas fa-book-open"></i> Nuestra Historia</h3>
-          <p>
-            <strong>Love Eye</strong> nació de una experiencia personal con problemas de visión. 
-            Cuando enfrenté desafíos con mis ojos, me di cuenta de cuánta información valiosa 
-            desconocía sobre el cuidado visual.
-          </p>
-          <p>
-            Este proyecto es mi manera de transformar esa experiencia en algo positivo. 
-            Quiero que otras personas tengan acceso a la información que yo necesité: 
-            <strong>prevención, nutrición, ejercicios, tratamientos y esperanza.</strong>
-          </p>
-          <p>
-            Si hubiera sabido hace 6 meses lo que sé ahora, tal vez mi historia sería diferente. 
-            Pero Dios tiene un propósito para todo. Si esta información ayuda aunque sea a una 
-            persona a cuidar mejor sus ojos, habrá valido la pena. 🙏💙
-          </p>
+  <div class="about_container">
+    <!-- Hero Section -->
+    <div class="about_hero">
+      <div class="hero_content">
+        <div class="logo_container">
+          <i class="fas fa-image"></i>
         </div>
+        <h1>ImgWii</h1>
+        <p class="tagline">Tu herramienta profesional para trabajar con imágenes</p>
+        <div class="hero_stats">
+          <div class="stat_item">
+            <i class="fas fa-compress"></i>
+            <span>Compresión</span>
+          </div>
+          <div class="stat_item">
+            <i class="fas fa-exchange-alt"></i>
+            <span>Conversión</span>
+          </div>
+          <div class="stat_item">
+            <i class="fas fa-magic"></i>
+            <span>Edición</span>
+          </div>
+          <div class="stat_item">
+            <i class="fas fa-cog"></i>
+            <span>Optimización</span>
+          </div>
+        </div>
+      </div>
+    </div>
 
-        <div class="proyecto_mision">
-          ${misionProyecto.map(mision => `
-            <div class="mision_card">
-              <span class="mision_icon">${mision.icon}</span>
-              <h4 class="mision_title">${mision.title}</h4>
-              <p class="mision_desc">${mision.desc}</p>
+    <div class="about_content">
+      <!-- Misión y Visión -->
+      <section class="mission_section">
+        <div class="section_grid">
+          <div class="mission_card">
+            <div class="card_header">
+              <i class="fas fa-bullseye"></i>
+              <h2>Nuestra Misión</h2>
             </div>
-          `).join('')}
-        </div>
-      </div>
-    </section>
-
-    <!-- CREADOR -->
-    <section class="creador_section">
-      <div class="creador_content">
-        <img src="${import.meta.env.BASE_URL}wilder.webp" alt="Wilder Taype" class="creador_foto">
-        <div class="creador_info">
-          <h3>Wilder Taype</h3>
-          <div class="rol">Desarrollador Full Stack & Creador de Love Eye</div>
-          <p>
-            Apasionado por la tecnología y el desarrollo web. Creo en usar la programación 
-            para crear soluciones que impacten positivamente la vida de las personas.
-          </p>
-          <p>
-            Este proyecto combina mi amor por el código con mi deseo de ayudar a otros 
-            a cuidar su salud visual. Cada línea de código está escrita con amor y esperanza. 💙
-          </p>
-          <div class="creador_social">
-            <a href="https://github.com/wtaype" target="_blank" class="social_link" title="GitHub">
-              <i class="fab fa-github"></i>
-            </a>
-            <a href="https://wtaype.github.io/" target="_blank" class="social_link" title="Portfolio">
-              <i class="fas fa-globe"></i>
-            </a>
-            <a href="mailto:wilder.taype@example.com" class="social_link" title="Email">
-              <i class="fas fa-envelope"></i>
-            </a>
+            <p>Proporcionar herramientas profesionales y accesibles para el procesamiento de imágenes, permitiendo a usuarios de todos los niveles optimizar, convertir y editar sus imágenes con la máxima calidad y eficiencia.</p>
+          </div>
+          <div class="mission_card">
+            <div class="card_header">
+              <i class="fas fa-eye"></i>
+              <h2>Nuestra Visión</h2>
+            </div>
+            <p>Ser la plataforma líder en procesamiento de imágenes, reconocida por nuestra innovación tecnológica, facilidad de uso y compromiso con la excelencia en cada herramienta que desarrollamos.</p>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- CONSEJOS FINALES -->
-    <section class="consejos_finales">
-      <div class="section_header">
+      <!-- Objetivos -->
+      <section class="objectives_section">
+        <h2 class="section_title">
+          <i class="fas fa-target"></i>
+          Nuestros Objetivos
+        </h2>
+        <div class="objectives_grid">
+          <div class="objective_card">
+            <div class="objective_icon">
+              <i class="fas fa-rocket"></i>
+            </div>
+            <h3>Innovación Continua</h3>
+            <p>Implementar las últimas tecnologías en procesamiento de imágenes para ofrecer resultados superiores.</p>
+          </div>
+          <div class="objective_card">
+            <div class="objective_icon">
+              <i class="fas fa-users"></i>
+            </div>
+            <h3>Experiencia de Usuario</h3>
+            <p>Crear interfaces intuitivas y fluidas que hagan el procesamiento de imágenes accesible para todos.</p>
+          </div>
+          <div class="objective_card">
+            <div class="objective_icon">
+              <i class="fas fa-bolt"></i>
+            </div>
+            <h3>Rendimiento Óptimo</h3>
+            <p>Garantizar procesamiento rápido y eficiente sin comprometer la calidad de las imágenes.</p>
+          </div>
+          <div class="objective_card">
+            <div class="objective_icon">
+              <i class="fas fa-shield-alt"></i>
+            </div>
+            <h3>Privacidad Total</h3>
+            <p>Todo el procesamiento se realiza en tu navegador. Tus imágenes nunca salen de tu dispositivo.</p>
+          </div>
+          <div class="objective_card">
+            <div class="objective_icon">
+              <i class="fas fa-globe"></i>
+            </div>
+            <h3>Acceso Universal</h3>
+            <p>Plataforma web accesible desde cualquier dispositivo, sin necesidad de instalación.</p>
+          </div>
+          <div class="objective_card">
+            <div class="objective_icon">
+              <i class="fas fa-heart"></i>
+            </div>
+            <h3>Pasión por las Imágenes</h3>
+            <p>Desarrollado con amor y dedicación para quienes valoran la calidad visual.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tecnologías -->
+      <section class="tech_section">
+        <h2 class="section_title">
+          <i class="fas fa-code"></i>
+          Tecnologías que Usamos
+        </h2>
+        <div class="tech_grid">
+          <div class="tech_card">
+            <div class="tech_icon html">
+              <i class="fab fa-html5"></i>
+            </div>
+            <h3>HTML5</h3>
+            <p>Estructura semántica moderna</p>
+            <span class="tech_badge">Core</span>
+          </div>
+          <div class="tech_card">
+            <div class="tech_icon css">
+              <i class="fab fa-css3-alt"></i>
+            </div>
+            <h3>CSS3</h3>
+            <p>Estilos y animaciones avanzadas</p>
+            <span class="tech_badge">Core</span>
+          </div>
+          <div class="tech_card">
+            <div class="tech_icon javascript">
+              <i class="fab fa-js-square"></i>
+            </div>
+            <h3>JavaScript</h3>
+            <p>Lógica y procesamiento del lado del cliente</p>
+            <span class="tech_badge">Core</span>
+          </div>
+          <div class="tech_card">
+            <div class="tech_icon vite">
+              <i class="fas fa-bolt"></i>
+            </div>
+            <h3>Vite</h3>
+            <p>Build tool ultrarrápido</p>
+            <span class="tech_badge">Build Tool</span>
+          </div>
+          <div class="tech_card">
+            <div class="tech_icon jquery">
+              <i class="fab fa-js"></i>
+            </div>
+            <h3>jQuery</h3>
+            <p>Manipulación eficiente del DOM</p>
+            <span class="tech_badge">Library</span>
+          </div>
+          <div class="tech_card">
+            <div class="tech_icon compressor">
+              <i class="fas fa-compress-alt"></i>
+            </div>
+            <h3>CompressorJS</h3>
+            <p>Compresión de imágenes de alta calidad</p>
+            <span class="tech_badge">Package</span>
+          </div>
+          <div class="tech_card">
+            <div class="tech_icon canvas">
+              <i class="fas fa-paint-brush"></i>
+            </div>
+            <h3>Canvas API</h3>
+            <p>Edición y manipulación de imágenes</p>
+            <span class="tech_badge">Web API</span>
+          </div>
+          <div class="tech_card">
+            <div class="tech_icon pica">
+              <i class="fas fa-image"></i>
+            </div>
+            <h3>Pica</h3>
+            <p>Redimensionamiento de alta calidad</p>
+            <span class="tech_badge">Package</span>
+          </div>
+          <div class="tech_card">
+            <div class="tech_icon fabric">
+              <i class="fas fa-layer-group"></i>
+            </div>
+            <h3>Fabric.js</h3>
+            <p>Canvas interactivo avanzado</p>
+            <span class="tech_badge">Package</span>
+          </div>
+          <div class="tech_card">
+            <div class="tech_icon jszip">
+              <i class="fas fa-file-archive"></i>
+            </div>
+            <h3>JSZip</h3>
+            <p>Creación y manejo de archivos ZIP</p>
+            <span class="tech_badge">Package</span>
+          </div>
+          <div class="tech_card">
+            <div class="tech_icon firebase">
+              <i class="fab fa-google"></i>
+            </div>
+            <h3>Firebase</h3>
+            <p>Backend y autenticación</p>
+            <span class="tech_badge">Platform</span>
+          </div>
+          <div class="tech_card">
+            <div class="tech_icon npm">
+              <i class="fab fa-npm"></i>
+            </div>
+            <h3>NPM</h3>
+            <p>Gestor de paquetes</p>
+            <span class="tech_badge">Package Manager</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Características -->
+      <section class="features_section">
         <h2 class="section_title">
           <i class="fas fa-star"></i>
-          Consejos Finales para Cuidar tus Ojitos
+          Características Principales
         </h2>
-        <p class="section_subtitle">
-          Recuerda estos puntos clave para mantener una visión saludable toda la vida
-        </p>
-        <div class="section_line"></div>
-      </div>
-      <div class="consejos_grid">
-        ${consejosFinales.map(consejo => `
-          <div class="consejo_card">
-            <div class="consejo_header">
-              <div class="consejo_icon">
-                <i class="fas ${consejo.icon}"></i>
-              </div>
-              <h3 class="consejo_title">${consejo.title}</h3>
+        <div class="features_grid">
+          <div class="feature_item">
+            <i class="fas fa-check-circle"></i>
+            <div class="feature_content">
+              <h4>Procesamiento Local</h4>
+              <p>Todo se procesa en tu navegador, sin subir archivos a servidores</p>
             </div>
-            <p class="consejo_desc">${consejo.desc}</p>
           </div>
-        `).join('')}
-      </div>
-    </section>
+          <div class="feature_item">
+            <i class="fas fa-check-circle"></i>
+            <div class="feature_content">
+              <h4>Múltiples Formatos</h4>
+              <p>Soporte para PNG, JPEG, WebP, AVIF, BMP y más</p>
+            </div>
+          </div>
+          <div class="feature_item">
+            <i class="fas fa-check-circle"></i>
+            <div class="feature_content">
+              <h4>Compresión Inteligente</h4>
+              <p>Reduce el tamaño sin perder calidad visible</p>
+            </div>
+          </div>
+          <div class="feature_item">
+            <i class="fas fa-check-circle"></i>
+            <div class="feature_content">
+              <h4>Conversión Rápida</h4>
+              <p>Convierte entre formatos en segundos</p>
+            </div>
+          </div>
+          <div class="feature_item">
+            <i class="fas fa-check-circle"></i>
+            <div class="feature_content">
+              <h4>Editor Completo</h4>
+              <p>10+ filtros y ajustes profesionales</p>
+            </div>
+          </div>
+          <div class="feature_item">
+            <i class="fas fa-check-circle"></i>
+            <div class="feature_content">
+              <h4>Interfaz Moderna</h4>
+              <p>Diseño intuitivo y responsive</p>
+            </div>
+          </div>
+        </div>
+      </section>
 
-    <!-- MENSAJE FINAL -->
-    <section class="mensaje_final" style="text-align: center; padding: 6vh 0; background: var(--bg3); border-radius: 2vh; margin-bottom: 4vh;">
-      <h2 style="font-size: var(--fz_x1); font-weight: 800; color: var(--tx); margin-bottom: 2vh;">
-        💙 Gracias por Visitar Love Eye 👁️
-      </h2>
-      <p style="font-size: var(--fz_m4); color: var(--txe); max-width: 700px; margin: 0 auto 3vh; line-height: 1.8;">
-        Recuerda: <strong>Tus ojos son un regalo precioso.</strong> Cuídalos con amor, 
-        aliméntalos bien, descánsalos adecuadamente y visita a tu oftalmólogo regularmente.
-      </p>
-      <p style="font-size: var(--fz_m3); color: var(--mco); font-weight: 700;">
-        🙏 Con fe, todo es posible. Nunca pierdas la esperanza. 🙏
-      </p>
-      <p style="font-size: var(--fz_m2); color: var(--txe); margin-top: 3vh;">
-        Hecho con 💙 por Wilder Taype © ${new Date().getFullYear()}
-      </p>
-    </section>
+      <!-- Compromiso -->
+      <section class="commitment_section">
+        <div class="commitment_card">
+          <i class="fas fa-heart commitment_icon"></i>
+          <h2>Nuestro Compromiso</h2>
+          <p>En ImgWii, creemos que las herramientas de procesamiento de imágenes deben ser:</p>
+          <div class="commitment_list">
+            <div class="commitment_item">
+              <i class="fas fa-check"></i>
+              <span><strong>Gratuitas y Accesibles</strong> - Sin costos ocultos ni limitaciones artificiales</span>
+            </div>
+            <div class="commitment_item">
+              <i class="fas fa-check"></i>
+              <span><strong>Privadas y Seguras</strong> - Tus imágenes permanecen en tu dispositivo</span>
+            </div>
+            <div class="commitment_item">
+              <i class="fas fa-check"></i>
+              <span><strong>Rápidas y Eficientes</strong> - Procesamiento optimizado para mejor rendimiento</span>
+            </div>
+            <div class="commitment_item">
+              <i class="fas fa-check"></i>
+              <span><strong>Profesionales y Confiables</strong> - Resultados de calidad en cada operación</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <section class="about_footer">
+        <p>Desarrollado con <i class="fas fa-heart"></i> para amantes de las imágenes</p>
+        <p class="version">Versión 1.0.0 - 2026</p>
+      </section>
+    </div>
   </div>
 `;
 
+// 🎯 Init
 export const init = () => {
-  console.log(`✅ Acerca completado`);
-
-  // Animación de entrada para curiosidades
-  wiVista('.curiosidad_card', () => {
-    $('.curiosidad_card').each((i, el) => {
-      setTimeout(() => {
-        $(el).css({
-          opacity: '0',
-          transform: 'scale(0.8)'
-        });
-        setTimeout(() => {
-          $(el).css({
-            transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-            opacity: '1',
-            transform: 'scale(1)'
-          });
-        }, 50);
-      }, i * 80);
-    });
-  });
-
-  // Animación para misión
-  wiVista('.mision_card', () => {
-    $('.mision_card').each((i, el) => {
-      setTimeout(() => {
-        $(el).css({
-          opacity: '0',
-          transform: 'translateY(30px)'
-        });
-        setTimeout(() => {
-          $(el).css({
-            transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-            opacity: '1',
-            transform: 'translateY(0)'
-          });
-        }, 50);
-      }, i * 150);
-    });
-  });
-
-  // Animación para consejos finales
-  wiVista('.consejo_card', () => {
-    $('.consejo_card').each((i, el) => {
-      setTimeout(() => {
-        $(el).css({
-          opacity: '0',
-          transform: 'translateX(-30px)'
-        });
-        setTimeout(() => {
-          $(el).css({
-            transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-            opacity: '1',
-            transform: 'translateX(0)'
-          });
-        }, 50);
-      }, i * 100);
+  console.log(`✅ Acerca de ${app} cargado`);
+  
+  // Animaciones de entrada
+  $('.mission_card, .objective_card, .tech_card, .feature_item').each(function(i) {
+    $(this).css({
+      'animation-delay': `${i * 0.05}s`
     });
   });
 };
 
+// 🧹 Cleanup
 export const cleanup = () => {
   console.log('🧹 Acerca limpiado');
 };

@@ -345,13 +345,6 @@
   margin: 0;
 }
 
-.files_header h3 input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  accent-color: var(--mco);
-}
-
 .files_header h3 i {
   color: var(--mco);
 }
@@ -481,20 +474,6 @@
   background: linear-gradient(135deg, rgba(60,215,65,0.1), rgba(78,203,113,0.1));
 }
 
-.file_checkbox {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.file_checkbox input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  accent-color: var(--mco);
-}
-
 .file_icon {
   width: 35px;
   height: 35px;
@@ -584,70 +563,6 @@
   transform: scale(0.9);
 }
 
-/* ==================== ACCIONES BATCH ==================== */
-.actions_section {
-  padding: 2vh 1.5vw;
-  background: var(--bg3);
-  border-top: 0.15vh solid var(--bg5);
-  display: flex;
-  flex-direction: column;
-  gap: 1.5vh;
-  flex-shrink: 0;
-}
-
-.btn_action {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1vh;
-  padding: 1.5vh 2vw;
-  border: none;
-  border-radius: 10px;
-  font-size: var(--fz_m3);
-  font-weight: 700;
-  cursor: pointer;
-  transition: all var(--tr_m);
-  box-shadow: 0 0.3vh 0.8vh rgba(0,0,0,0.15);
-}
-
-.btn_optimize {
-  background: var(--mco);
-  color: var(--txa);
-}
-
-.btn_optimize:hover:not(:disabled) {
-  transform: translateY(-0.3vh);
-  box-shadow: 0 0.6vh 1.5vh rgba(0,0,0,0.25);
-}
-
-.btn_optimize:active:not(:disabled) {
-  transform: translateY(0) scale(0.95);
-}
-
-.btn_optimize:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn_download {
-  background: linear-gradient(135deg, var(--success), var(--Paz));
-  color: var(--F);
-}
-
-.btn_download:hover:not(:disabled) {
-  transform: translateY(-0.3vh);
-  box-shadow: 0 0.6vh 1.5vh rgba(60,215,65,0.4);
-}
-
-.btn_download:active:not(:disabled) {
-  transform: translateY(0) scale(0.95);
-}
-
-.btn_download:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 /* ==================== RESPONSIVE ==================== */
 @media (max-width: 1024px) {
   .opt_layout {
@@ -714,15 +629,5 @@
 
   .btn_stat_control i {
     font-size: 0.9rem;
-  }
-
-  .file_checkbox input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-  }
-
-  .files_header h3 input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
   }
 }
