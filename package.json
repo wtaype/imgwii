@@ -1,0 +1,24 @@
+{
+  "name": "imgwii",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "dev:live": "vite --host"
+  },
+  "devDependencies": {
+    "vite": "^7.2.4"
+  },
+  "dependencies": {
+    "browser-image-compression": "^2.0.2",
+    "compressorjs": "^1.2.1",
+    "fabric": "^7.1.0",
+    "firebase": "^12.8.0",
+    "jquery": "^4.0.0",
+    "jszip": "^3.10.1",
+    "pica": "^9.0.1"
+  }
+}
