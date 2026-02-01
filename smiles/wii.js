@@ -2,6 +2,7 @@
 // INFORMACIÓN DEL APP 
 export let id = 'imgwii'
 export let app = 'ImgWii'
+export let ipdev = '192.168.18.62';
 export let lanzamiento = 2026;
 export let autor = '@wilder.taype';
 export let link = 'https://wtaype.github.io/';
