@@ -1,13 +1,13 @@
 import './convertir.css';
 import $ from 'jquery';
+import imageCompression from 'browser-image-compression';
 import { app } from '../wii.js';
 import { Notificacion, wiTip } from '../widev.js';
 
 // 📊 Estado
-let archivos = [];
-let archivoActual = null;
+let archivoOriginal = null;
+let archivoConvertido = null;
 let isConverting = false;
-let pasteCount = 1;
 
 // 🔧 Utilidades
 const formatBytes = (bytes) => {
@@ -22,57 +22,126 @@ const formatBytes = (bytes) => {
 export const render = () => `
   <div class="convert_container">
     <div class="conv_layout">
+      <!-- LEFT COLUMN (29%) -->
       <div class="conv_left">
-        <div class="conv_drop_zone" id="dropZone">
-          <div class="drop_placeholder">
-            <i class="fas fa-exchange-alt"></i>
-            <h2>Arrastra tus imágenes aquí</h2>
-            <p>o haz doble clic para seleccionar</p>
-            <small>PNG, JPG, WEBP, AVIF, BMP, GIF (máx 50MB)</small>
+        <div class="conv_config_section">
+          <div class="config_header">
+            <h3><i class="fas fa-exchange-alt"></i> Configuración</h3>
           </div>
-          <input type="file" id="fileInput" accept="image/*" multiple hidden>
-        </div>
-        <div class="conv_preview dpn" id="previewArea">
-          <div class="preview_image_container">
-            <img id="previewImage" src="" alt="Preview">
-          </div>
-          <div class="preview_stats dpn" id="previewStats">
-            <div class="stats_info">
-              <div class="stat_compact"><i class="fas fa-file-alt"></i><span id="statNombre">-</span></div>
-              <div class="stat_compact"><i class="fas fa-expand-arrows-alt"></i><span id="statDimensiones">-</span></div>
-              <div class="stat_compact"><i class="fas fa-weight-hanging"></i><span id="statTamano">-</span></div>
-              <div class="stat_compact format_selector">
-                <i class="fas fa-file-image"></i>
+
+          <div class="config_grid">
+            <div class="config_item">
+              <label><i class="fas fa-file-image"></i> Formato:</label>
+              <div class="select_wrapper">
                 <select id="formatSelect">
+                  <option value="webp" selected>WebP</option>
                   <option value="png">PNG</option>
                   <option value="jpeg">JPEG</option>
-                  <option value="webp">WEBP</option>
                   <option value="avif">AVIF</option>
                   <option value="bmp">BMP</option>
                 </select>
               </div>
             </div>
-            <div class="stats_controls">
-              <button class="btn_stat_control" id="btnConvertCurrent"><i class="fas fa-exchange-alt"></i><span>Convertir</span></button>
-              <button class="btn_stat_control" id="btnDownloadCurrent"><i class="fas fa-download"></i><span>Descargar</span></button>
+
+            <div class="config_item">
+              <label><i class="fas fa-star"></i> Calidad:</label>
+              <div class="input_wrapper">
+                <input type="number" id="quality" min="10" max="100" value="85" step="5">
+                <span class="input_unit">%</span>
+              </div>
             </div>
           </div>
-          <div class="progress_container dpn" id="progressContainer">
-            <div class="progress_bar">
-              <div class="progress_fill" id="progressFill"></div>
-            </div>
-            <div class="progress_text" id="progressText">Convirtiendo... 0%</div>
+
+          <div class="action_buttons">
+            <button class="btn_convert" id="btnConvert">
+              <i class="fas fa-exchange-alt"></i>
+              <span>Convertir</span>
+            </button>
+            <button class="btn_download" id="btnDownload">
+              <i class="fas fa-download"></i>
+              <span>Descargar</span>
+            </button>
+          </div>
+
+          <div class="secondary_buttons">
+            <button class="btn_select" id="btnSelect">
+              <i class="fas fa-folder-open"></i>
+              <span>Seleccionar</span>
+            </button>
+            <button class="btn_delete" id="btnDelete">
+              <i class="fas fa-trash-alt"></i>
+              <span>Eliminar</span>
+            </button>
           </div>
         </div>
-      </div>
-      <div class="conv_right">
-        <div class="files_section">
-          <div class="files_header">
-            <h3><i class="fas fa-images"></i> Archivos (<span id="filesCount">0</span>)</h3>
-            <button class="btn_clear_all" id="btnClearAll" title="Limpiar todo"><i class="fas fa-trash"></i></button>
+
+        <div class="conv_info_section" id="infoSection" style="display:none;">
+          <div class="info_header">
+            <h4><i class="fas fa-chart-line"></i> Comparación</h4>
           </div>
-          <div class="files_list" id="filesList">
-            <div class="files_empty"><i class="fas fa-folder-open"></i><p>Sin archivos</p></div>
+
+          <div class="comparison_grid">
+            <div class="comparison_col">
+              <span class="comparison_label">Original:</span>
+              <div class="comparison_data">
+                <span class="data_size" id="originalSize">--</span>
+                <span class="data_dimensions" id="originalDimensions">--</span>
+                <span class="data_format" id="originalFormat">--</span>
+              </div>
+            </div>
+
+            <div class="comparison_arrow">
+              <i class="fas fa-arrow-right"></i>
+            </div>
+
+            <div class="comparison_col">
+              <span class="comparison_label">Convertido:</span>
+              <div class="comparison_data">
+                <span class="data_size success" id="convertedSize">--</span>
+                <span class="data_dimensions" id="convertedDimensions">--</span>
+                <span class="data_format success" id="convertedFormat">--</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="reduction_display" id="reductionDisplay" style="display:none;">
+            <i class="fas fa-chart-pie"></i>
+            <span id="reductionLabel">Reducción: <strong id="reductionPercent">0%</strong></span>
+          </div>
+        </div>
+
+        <div class="progress_section" id="progressSection" style="display:none;">
+          <div class="progress_header">
+            <span>Convirtiendo...</span>
+            <span id="progressPercent">0%</span>
+          </div>
+          <div class="progress_bar">
+            <div class="progress_fill" id="progressFill"></div>
+          </div>
+        </div>
+
+        <div class="file_name_section" id="fileNameSection" style="display:none;">
+          <div class="file_name_header">
+            <i class="fas fa-file-image"></i>
+            <span>Nombre:</span>
+          </div>
+          <div class="file_name_display" id="fileNameDisplay" title="">imagen.png</div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN (70%) -->
+      <div class="conv_right">
+        <div class="drop_preview_zone" id="dropZone">
+          <div class="drop_placeholder" id="dropPlaceholder">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <h2>Arrastra tu imagen aquí</h2>
+            <p>o presiona <kbd>Ctrl</kbd> + <kbd>V</kbd></p>
+            <small>PNG, JPG, JPEG, WEBP, AVIF, BMP, GIF (máx 50MB)</small>
+          </div>
+          <input type="file" id="fileInput" accept="image/*" hidden>
+
+          <div class="preview_container" id="previewContainer" style="display:none;">
+            <img id="previewImage" src="" alt="Preview">
           </div>
         </div>
       </div>
@@ -82,15 +151,25 @@ export const render = () => `
 
 // 🎯 Init
 export const init = () => {
-  console.log(`✅ Convertidor de ${app} cargado`);
+  console.log(`✅ Convertir de ${app} cargado`);
 
   const $zone = $('#dropZone');
   
   // Events
-  $('#fileInput').on('change', e => procesarArchivos(e.target.files));
-  $('#btnConvertCurrent').on('click', convertirActual);
-  $('#btnDownloadCurrent').on('click', descargarActual);
-  $('#btnClearAll').on('click', limpiarTodo);
+  $('#fileInput').on('change', e => procesarArchivo(e.target.files[0]));
+  $('#btnConvert').on('click', convertir);
+  $('#btnDownload').on('click', descargar);
+  $('#btnSelect').on('click', () => $('#fileInput').trigger('click'));
+  $('#btnDelete').on('click', eliminar);
+  
+  // 🔄 ACTUALIZAR PREVIEW AL CAMBIAR FORMATO/CALIDAD
+  $('#formatSelect, #quality').on('change input', () => {
+    if (archivoConvertido) {
+      // Solo resetear preview si ya fue convertido
+      $('#convertedSize, #convertedDimensions, #convertedFormat').text('--');
+      $('#reductionDisplay').hide();
+    }
+  });
   
   // Drag & Drop
   $zone.on('dragover', e => { e.preventDefault(); $zone.addClass('dragover'); });
@@ -98,365 +177,298 @@ export const init = () => {
   $zone.on('drop', e => {
     e.preventDefault();
     $zone.removeClass('dragover');
-    procesarArchivos(e.originalEvent.dataTransfer.files);
+    const file = e.originalEvent.dataTransfer.files[0];
+    if (file) procesarArchivo(file);
   });
-  $zone.on('dblclick', e => { e.preventDefault(); $('#fileInput').trigger('click'); });
-  
-  // Paste event
-  $(document).on('paste', handlePaste);
-  
-  // Load session
-  loadSession();
-};
+  $zone.on('dblclick', () => $('#fileInput').trigger('click'));
 
-/* ==================== PASTE ==================== */
-const handlePaste = (e) => {
-  const items = e.originalEvent?.clipboardData?.items;
-  if (!items) return;
-  
-  let found = false;
-  $.each(items, (_, item) => {
-    if (item.type.startsWith('image/')) {
-      const blob = item.getAsFile();
-      if (!blob) return true;
-      
-      const file = new File([blob], `Captura_${pasteCount++}.png`, { type: blob.type });
-      procesarArchivos([file]);
-      found = true;
-      
-      // Visual feedback
-      $('#dropZone, #previewArea').addClass('paste_flash');
-      setTimeout(() => {
-        $('#dropZone, #previewArea').removeClass('paste_flash');
-      }, 300);
-      
-      return false;
-    }
-  });
-  
-  if (!found && e.originalEvent?.clipboardData?.items?.length > 0) {
-    Notificacion('No se detectó imagen en portapapeles', 'error', 2000);
-  }
-};
-
-// 📁 Procesar
-function procesarArchivos(files) {
-  let agregados = 0;
-  
-  Array.from(files).forEach(file => {
-    if (!file.type.startsWith('image/')) {
-      return Notificacion(`${file.name}: no es una imagen`, 'error', 2000);
-    }
-    if (file.size > 50 * 1024 * 1024) {
-      return Notificacion(`${file.name}: muy grande (máx 50MB)`, 'error', 2000);
-    }
-
-    const reader = new FileReader();
-    reader.onload = e => {
-      const img = new Image();
-      img.onload = () => {
-        const formatoOriginal = file.type.split('/')[1].toUpperCase();
-        archivos.push({
-          id: Date.now() + Math.random(),
-          file,
-          original: {
-            url: e.target.result,
-            size: file.size,
-            width: img.width,
-            height: img.height,
-            name: file.name,
-            format: formatoOriginal
-          },
-          isConverted: false
-        });
-        
-        if (++agregados === files.length) {
-          actualizarUI();
-          if (archivos.length === agregados) mostrarImagen(0);
-          Notificacion(`${agregados} archivo(s) agregado(s)`, 'success', 2000);
-          saveSession();
+  // 📋 CTRL + V (Paste) - MEJORADO
+  $(document).on('paste', e => {
+    const items = e.originalEvent.clipboardData?.items;
+    if (!items) return;
+    
+    for (let item of items) {
+      if (item.type.indexOf('image') !== -1) {
+        const blob = item.getAsFile();
+        if (blob) {
+          const ext = item.type.split('/')[1] || 'png';
+          const file = new File([blob], `Captura_${Date.now()}.${ext}`, { type: item.type });
+          procesarArchivo(file);
+          
+          // Visual feedback
+          $zone.addClass('paste_flash');
+          setTimeout(() => $zone.removeClass('paste_flash'), 300);
+          
+          Notificacion('¡Imagen pegada desde portapapeles!', 'success', 2000);
         }
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
+        break;
+      }
+    }
   });
-}
+};
 
-// 🖼️ Mostrar
-function mostrarImagen(index) {
-  if (index < 0 || index >= archivos.length) return;
-  
-  archivoActual = index;
-  const archivo = archivos[index];
+// 📂 Procesar Archivo
+function procesarArchivo(file) {
+  if (!file) return;
 
-  if ($('#dropZone').is(':visible')) {
-    $('#dropZone').fadeOut(200, () => $('#previewArea').removeClass('dpn').hide().fadeIn(300));
+  if (!file.type.startsWith('image/')) {
+    return Notificacion('Por favor selecciona un archivo de imagen válido', 'error', 3000);
+  }
+  if (file.size > 50 * 1024 * 1024) {
+    return Notificacion('Archivo muy grande (máx 50MB)', 'error', 3000);
   }
 
-  $('#previewImage').attr('src', archivo.original.url);
-  $('#previewStats').removeClass('dpn').hide().fadeIn(200);
-  $('#statNombre').text(archivo.original.name);
-  $('#statDimensiones').text(`${archivo.original.width}×${archivo.original.height}`);
-  $('#statTamano').text(formatBytes(archivo.original.size));
-
-  $('.file_item').removeClass('active');
-  $(`.file_item[data-id="${archivo.id}"]`).addClass('active');
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const formatoOriginal = file.type.split('/')[1].toUpperCase();
+      
+      archivoOriginal = {
+        file,
+        url: e.target.result,
+        size: file.size,
+        width: img.width,
+        height: img.height,
+        name: file.name,
+        format: formatoOriginal
+      };
+      
+      archivoConvertido = null;
+      mostrarImagen();
+      Notificacion(`Imagen cargada: ${file.name}`, 'success', 2000);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
-// ✨ Convertir con barra de progreso
-async function convertirActual() {
-  if (archivoActual === null || isConverting) return;
+// 🖼️ Mostrar Imagen
+function mostrarImagen() {
+  if (!archivoOriginal) return;
+
+  $('#dropPlaceholder').hide();
+  $('#previewContainer').show();
+  $('#previewImage').attr('src', archivoOriginal.url);
   
-  const archivo = archivos[archivoActual];
+  $('#originalSize').text(formatBytes(archivoOriginal.size));
+  $('#originalDimensions').text(`${archivoOriginal.width}×${archivoOriginal.height}`);
+  $('#originalFormat').text(archivoOriginal.format);
+  
+  $('#fileNameDisplay').text(archivoOriginal.name).attr('title', archivoOriginal.name);
+  
+  $('#infoSection, #fileNameSection').fadeIn(300);
+  $('#convertedSize, #convertedDimensions, #convertedFormat').text('--');
+  $('#reductionDisplay').hide();
+}
+
+// ✨ Convertir con ImageCompression MEJORADO
+async function convertir() {
+  if (!archivoOriginal) {
+    return Notificacion('Primero carga una imagen', 'warning', 2000);
+  }
+
+  if (isConverting) {
+    return Notificacion('Ya hay una conversión en progreso', 'warning', 2000);
+  }
+  
   const formatoDestino = $('#formatSelect').val();
-  const $btn = $('#btnConvertCurrent');
-  const $progress = $('#progressContainer');
-  const $fill = $('#progressFill');
-  const $text = $('#progressText');
+  const $btn = $('#btnConvert');
   
   isConverting = true;
   $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> <span>Procesando...</span>');
-  $progress.removeClass('dpn');
+  
+  $('#progressSection').fadeIn(300);
+  updateProgress(0);
 
   try {
-    // Simular progreso
-    let progress = 0;
-    const progressInterval = setInterval(() => {
-      progress += Math.random() * 15;
-      if (progress > 90) progress = 90;
-      $fill.css('width', `${progress}%`);
-      $text.text(`Convirtiendo... ${Math.round(progress)}%`);
-    }, 100);
+    const quality = parseInt($('#quality').val()) / 100;
+
+    updateProgress(10);
 
     const inicio = performance.now();
     
-    // Crear canvas para conversión
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const img = new Image();
-    
-    await new Promise((resolve, reject) => {
-      img.onload = resolve;
-      img.onerror = reject;
-      img.src = archivo.original.url;
-    });
+    // 💪 CONFIGURACIÓN MEJORADA POR FORMATO
+    const options = {
+      maxSizeMB: 50,
+      useWebWorker: true,
+      fileType: `image/${formatoDestino}`,
+      // AJUSTE DINÁMICO DE CALIDAD (1-100% funcional)
+      initialQuality: quality,
+      alwaysKeepResolution: true
+    };
 
-    canvas.width = img.width;
-    canvas.height = img.height;
-    ctx.drawImage(img, 0, 0);
+    updateProgress(30);
 
-    // Convertir a formato deseado
-    const mimeType = `image/${formatoDestino === 'jpg' ? 'jpeg' : formatoDestino}`;
-    const quality = formatoDestino === 'jpeg' || formatoDestino === 'webp' ? 0.92 : undefined;
-    
-    const blob = await new Promise((resolve) => {
-      canvas.toBlob(resolve, mimeType, quality);
-    });
+    // Usar imageCompression para mejor calidad
+    let compressedBlob = await imageCompression(archivoOriginal.file, options);
 
-    clearInterval(progressInterval);
-    $fill.css('width', '100%');
-    $text.text('Conversión completa! 100%');
+    updateProgress(60);
+
+    // 🎯 CONVERSIÓN ADICIONAL CON CANVAS (Para formatos específicos)
+    if (['png', 'jpeg', 'webp', 'bmp'].includes(formatoDestino)) {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d', { 
+        alpha: formatoDestino === 'png',
+        willReadFrequently: false 
+      });
+      const img = new Image();
+      
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = URL.createObjectURL(compressedBlob);
+      });
+
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0);
+
+      updateProgress(80);
+
+      const mimeType = `image/${formatoDestino === 'jpg' ? 'jpeg' : formatoDestino}`;
+      compressedBlob = await new Promise((resolve) => {
+        canvas.toBlob(resolve, mimeType, quality);
+      });
+      
+      URL.revokeObjectURL(img.src);
+    } else {
+      updateProgress(80);
+    }
+
+    updateProgress(90);
 
     const fin = performance.now();
-    const nuevoNombre = archivo.original.name.replace(/\.[^.]+$/, `.${formatoDestino}`);
 
     const reader = new FileReader();
     await new Promise(resolve => {
       reader.onload = e => {
         const img2 = new Image();
         img2.onload = () => {
-          const cambioTamano = ((blob.size - archivo.original.size) / archivo.original.size * 100).toFixed(1);
-          const signo = cambioTamano > 0 ? '+' : '';
+          // 🔧 FIX: CALCULAR REDUCCIÓN CORRECTAMENTE
+          const originalSize = archivoOriginal.size;
+          const convertedSize = compressedBlob.size;
+          const reduccion = (((originalSize - convertedSize) / originalSize) * 100).toFixed(1);
+          const esReduccion = parseFloat(reduccion) > 0;
           
-          archivos.push({
-            id: Date.now() + Math.random(),
-            file: new File([blob], nuevoNombre, { type: mimeType }),
-            original: {
-              url: e.target.result,
-              size: blob.size,
-              width: img2.width,
-              height: img2.height,
-              name: nuevoNombre,
-              format: formatoDestino.toUpperCase()
-            },
-            isConverted: true,
-            cambioTamano,
-            tiempoConversion: ((fin - inicio) / 1000).toFixed(2),
-            formatoOriginal: archivo.original.format
-          });
+          archivoConvertido = {
+            blob: compressedBlob,
+            url: e.target.result,
+            size: convertedSize,
+            width: img2.width,
+            height: img2.height,
+            format: formatoDestino.toUpperCase(),
+            reduccion: Math.abs(reduccion),
+            esReduccion,
+            tiempo: ((fin - inicio) / 1000).toFixed(2)
+          };
 
-          actualizarUI();
-          mostrarImagen(archivos.length - 1);
-          Notificacion(`¡Convertido a ${formatoDestino.toUpperCase()}! ${signo}${cambioTamano}%`, 'success', 2000);
-          saveSession();
+          $('#previewImage').attr('src', archivoConvertido.url);
+          $('#convertedSize').text(formatBytes(archivoConvertido.size));
+          $('#convertedDimensions').text(`${archivoConvertido.width}×${archivoConvertido.height}`);
+          $('#convertedFormat').text(archivoConvertido.format);
           
+          // 🎨 MOSTRAR REDUCCIÓN O AUMENTO
+          const $display = $('#reductionDisplay');
+          const $icon = $display.find('i');
+          const $label = $('#reductionLabel');
+          const $percent = $('#reductionPercent');
+          
+          if (esReduccion) {
+            $display.removeClass('warning').addClass('success');
+            $icon.removeClass('fa-arrow-up').addClass('fa-chart-pie');
+            $label.html(`Reducción: <strong id="reductionPercent">${reduccion}%</strong>`);
+            $percent.text(`${reduccion}%`);
+          } else {
+            $display.removeClass('success').addClass('warning');
+            $icon.removeClass('fa-chart-pie').addClass('fa-arrow-up');
+            $label.html(`Aumento: <strong id="reductionPercent">${Math.abs(reduccion)}%</strong>`);
+            $percent.text(`+${Math.abs(reduccion)}%`);
+          }
+          
+          $display.fadeIn(300);
+
+          updateProgress(100);
+
           setTimeout(() => {
-            $progress.addClass('dpn');
-            $fill.css('width', '0%');
-          }, 1500);
-          
+            $('#progressSection').fadeOut(300);
+            
+            const mensaje = esReduccion 
+              ? `¡Convertido a ${formatoDestino.toUpperCase()}! Reducción: ${reduccion}% en ${archivoConvertido.tiempo}s` 
+              : `¡Convertido a ${formatoDestino.toUpperCase()}! Archivo ${Math.abs(reduccion)}% más grande en ${archivoConvertido.tiempo}s`;
+            
+            Notificacion(mensaje, esReduccion ? 'success' : 'warning', 3000);
+          }, 500);
+
           resolve();
         };
         img2.src = e.target.result;
       };
-      reader.readAsDataURL(blob);
+      reader.readAsDataURL(compressedBlob);
     });
   } catch (error) {
     console.error('Error:', error);
-    Notificacion('Error al convertir', 'error');
-    $progress.addClass('dpn');
-    $fill.css('width', '0%');
+    Notificacion('Error al convertir la imagen', 'error');
+    $('#progressSection').fadeOut(300);
   }
 
   isConverting = false;
   $btn.prop('disabled', false).html('<i class="fas fa-exchange-alt"></i> <span>Convertir</span>');
 }
 
+// 📊 Actualizar Progreso
+function updateProgress(percent) {
+  $('#progressFill').css('width', `${percent}%`);
+  $('#progressPercent').text(`${percent}%`);
+}
+
 // 💾 Descargar
-function descargarActual() {
-  if (archivoActual === null) return;
+function descargar() {
+  if (!archivoConvertido) {
+    return Notificacion('Primero convierte la imagen', 'warning', 2000);
+  }
   
-  const archivo = archivos[archivoActual];
-  const url = URL.createObjectURL(archivo.file);
+  const url = URL.createObjectURL(archivoConvertido.blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = archivo.original.name;
+  a.download = `convertido_${archivoOriginal.name.replace(/\.[^.]+$/, `.${archivoConvertido.format.toLowerCase()}`)}`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
   
-  wiTip('#btnDownloadCurrent', '¡Descargado! 🎉', 'success', 1500);
+  wiTip('#btnDownload', '¡Descargado! 🎉', 'success', 1500);
 }
 
-// 🧹 Limpiar
-function limpiarTodo() {
-  if (!archivos.length) return;
+// 🗑️ Eliminar
+function eliminar() {
+  if (!archivoOriginal && !archivoConvertido) {
+    return Notificacion('No hay imagen para eliminar', 'warning', 2000);
+  }
+
+  archivoOriginal = null;
+  archivoConvertido = null;
   
-  archivos = [];
-  archivoActual = null;
-  pasteCount = 1;
+  $('#previewContainer').hide();
+  $('#dropPlaceholder').show();
+  $('#previewImage').attr('src', '');
+  $('#infoSection, #fileNameSection, #progressSection').hide();
   $('#fileInput').val('');
-  $('#previewArea').fadeOut(200, () => $('#dropZone').fadeIn(300));
-  $('#previewStats').addClass('dpn');
-  $('#progressContainer').addClass('dpn');
-  actualizarUI();
-  Notificacion('Todo limpiado', 'success', 1500);
-  localStorage.removeItem('convertir_session');
-}
-
-// 🔄 UI
-function actualizarUI() {
-  $('#filesCount').text(archivos.length);
-  actualizarListaArchivos();
-}
-
-function actualizarListaArchivos() {
-  const $lista = $('#filesList');
   
-  if (!archivos.length) {
-    return $lista.html('<div class="files_empty"><i class="fas fa-folder-open"></i><p>Sin archivos</p></div>');
-  }
-
-  $lista.html(archivos.map((archivo, index) => {
-    const hasConversion = archivo.isConverted;
-    const iconClass = hasConversion ? 'fa-check-circle' : 'fa-image';
-    const iconColor = hasConversion ? 'var(--success)' : 'var(--mco)';
-    
-    return `
-      <div class="file_item ${index === archivoActual ? 'active' : ''} ${hasConversion ? 'converted' : ''}" data-id="${archivo.id}">
-        <div class="file_icon"><i class="fas ${iconClass}" style="color: ${iconColor}"></i></div>
-        <div class="file_info">
-          <span class="file_name">${archivo.original.name}</span>
-          <div class="file_meta">
-            <span class="file_format">${archivo.original.format}</span>
-            <span class="file_size">${formatBytes(archivo.original.size)}</span>
-            ${hasConversion ? `<span class="file_change">${archivo.cambioTamano > 0 ? '+' : ''}${archivo.cambioTamano}%</span>` : ''}
-          </div>
-        </div>
-        <button class="btn_file_delete" data-id="${archivo.id}"><i class="fas fa-times"></i></button>
-      </div>
-    `;
-  }).join(''));
-
-  $('.file_item').on('click', function(e) {
-    if ($(e.target).closest('.btn_file_delete').length) return;
-    const index = archivos.findIndex(a => a.id === $(this).data('id'));
-    if (index !== -1) mostrarImagen(index);
-  });
-
-  $('.btn_file_delete').on('click', function(e) {
-    e.stopPropagation();
-    const index = archivos.findIndex(a => a.id === $(this).data('id'));
-    if (index === -1) return;
-
-    archivos.splice(index, 1);
-    if (!archivos.length) return limpiarTodo();
-    
-    if (archivoActual >= archivos.length) archivoActual = archivos.length - 1;
-    mostrarImagen(archivoActual);
-    actualizarUI();
-    saveSession();
-  });
-}
-
-/* ==================== SESSION PERSISTENCE ==================== */
-const saveSession = () => {
-  const session = archivos.map(a => ({
-    id: a.id,
-    name: a.original.name,
-    url: a.original.url,
-    size: a.original.size,
-    width: a.original.width,
-    height: a.original.height,
-    format: a.original.format,
-    isConverted: a.isConverted,
-    cambioTamano: a.cambioTamano,
-    formatoOriginal: a.formatoOriginal
-  }));
-  localStorage.setItem('convertir_session', JSON.stringify(session));
-};
-
-const loadSession = () => {
-  const saved = localStorage.getItem('convertir_session');
-  if (!saved) return;
+  $('#formatSelect').val('webp');
+  $('#quality').val(85);
   
-  try {
-    const session = JSON.parse(saved);
-    if (!session.length) return;
-    
-    // Evitar duplicados: solo cargar si el array está vacío
-    if (archivos.length > 0) return;
-    
-    session.forEach(s => {
-      archivos.push({
-        id: s.id,
-        file: null,
-        original: {
-          url: s.url,
-          name: s.name,
-          size: s.size,
-          width: s.width,
-          height: s.height,
-          format: s.format
-        },
-        isConverted: s.isConverted,
-        cambioTamano: s.cambioTamano,
-        formatoOriginal: s.formatoOriginal
-      });
-    });
-    
-    actualizarUI();
-    if (archivos.length > 0) mostrarImagen(0);
-    console.log(`✅ ${archivos.length} archivo(s) restaurados`);
-  } catch (e) {
-    console.error('Error cargando sesión:', e);
-  }
-};
+  Notificacion('Imagen eliminada correctamente', 'success', 2000);
+}
 
 // 🧹 Cleanup
 export const cleanup = () => {
-  saveSession();
+  console.log('🧹 Convertir limpiado');
+  archivoOriginal = null;
+  archivoConvertido = null;
+  isConverting = false;
+  $('#fileInput, #btnConvert, #btnDownload, #btnSelect, #btnDelete, #dropZone, #formatSelect, #quality').off();
   $(document).off('paste');
 };

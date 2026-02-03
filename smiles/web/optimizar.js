@@ -5,8 +5,8 @@ import { app } from '../wii.js';
 import { Notificacion, wiTip } from '../widev.js';
 
 // 📊 Estado
-let archivos = [];
-let archivoActual = null;
+let archivoOriginal = null;
+let archivoOptimizado = null;
 
 // 🔧 Utilidades
 const formatBytes = (bytes) => {
@@ -21,50 +21,109 @@ const formatBytes = (bytes) => {
 export const render = () => `
   <div class="optimizar_container">
     <div class="opt_layout">
+      <!-- LEFT COLUMN (29%) -->
       <div class="opt_left">
-        <div class="opt_drop_zone" id="dropZone">
-          <div class="drop_placeholder">
-            <i class="fas fa-cloud-upload-alt"></i>
-            <h2>Optimiza tus imágenes aquí</h2>
-            <p>o haz doble clic para seleccionar</p>
-            <small>PNG, JPG, JPEG, WEBP (máx 50MB)</small>
+        <div class="opt_config_section">
+          <div class="config_header">
+            <h3><i class="fas fa-sliders-h"></i> Configuración</h3>
           </div>
-          <input type="file" id="fileInput" accept="image/png,image/jpeg,image/jpg,image/webp" multiple hidden>
+
+          <div class="config_grid">
+            <div class="config_item">
+              <label><i class="fas fa-star"></i> Calidad:</label>
+              <div class="input_wrapper">
+                <input type="number" id="quality" min="10" max="100" value="80" step="5">
+                <span class="input_unit">%</span>
+              </div>
+            </div>
+
+            <div class="config_item">
+              <label><i class="fas fa-expand"></i> Max Ancho:</label>
+              <div class="input_wrapper">
+                <input type="number" id="maxWidth" min="100" max="8000" value="1920" step="100">
+                <span class="input_unit">px</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="action_buttons">
+            <button class="btn_optimize" id="btnOptimize">
+              <i class="fas fa-magic"></i>
+              <span>Optimizar</span>
+            </button>
+            <button class="btn_download" id="btnDownload">
+              <i class="fas fa-download"></i>
+              <span>Descargar</span>
+            </button>
+          </div>
+
+          <div class="secondary_buttons">
+            <button class="btn_select" id="btnSelect">
+              <i class="fas fa-folder-open"></i>
+              <span>Seleccionar</span>
+            </button>
+            <button class="btn_delete" id="btnDelete">
+              <i class="fas fa-trash-alt"></i>
+              <span>Eliminar</span>
+            </button>
+          </div>
         </div>
-        <div class="opt_preview dpn" id="previewArea">
-          <div class="preview_image_container">
-            <img id="previewImage" src="" alt="Preview">
+
+        <div class="opt_info_section" id="infoSection" style="display:none;">
+          <div class="info_header">
+            <h4><i class="fas fa-chart-line"></i> Comparación</h4>
           </div>
-          <div class="preview_stats dpn" id="previewStats">
-            <div class="stats_info">
-              <div class="stat_compact"><i class="fas fa-file-alt"></i><span id="statNombre">-</span></div>
-              <div class="stat_compact"><i class="fas fa-expand-arrows-alt"></i><span id="statDimensiones">-</span></div>
-              <div class="stat_compact"><i class="fas fa-weight-hanging"></i><span id="statTamano">-</span></div>
-              <div class="stat_compact"><i class="fas fa-layer-group"></i><span id="statOptimizaciones">-</span></div>
+
+          <div class="comparison_grid">
+            <div class="comparison_col">
+              <span class="comparison_label">Original:</span>
+              <div class="comparison_data">
+                <span class="data_size" id="originalSize">--</span>
+                <span class="data_dimensions" id="originalDimensions">--</span>
+              </div>
             </div>
-            <div class="stats_controls">
-              <button class="btn_stat_control" id="btnOptimizeCurrent"><i class="fas fa-magic"></i><span>Optimizar</span></button>
-              <button class="btn_stat_control" id="btnDownloadCurrent"><i class="fas fa-download"></i><span>Descargar</span></button>
+
+            <div class="comparison_arrow">
+              <i class="fas fa-arrow-right"></i>
+            </div>
+
+            <div class="comparison_col">
+              <span class="comparison_label">Optimizado:</span>
+              <div class="comparison_data">
+                <span class="data_size success" id="optimizedSize">--</span>
+                <span class="data_dimensions" id="optimizedDimensions">--</span>
+              </div>
             </div>
           </div>
+
+          <div class="reduction_display" id="reductionDisplay" style="display:none;">
+            <i class="fas fa-chart-pie"></i>
+            <span>Reducción: <strong id="reductionPercent">0%</strong></span>
+          </div>
+        </div>
+
+        <div class="file_name_section" id="fileNameSection" style="display:none;">
+          <div class="file_name_header">
+            <i class="fas fa-file-image"></i>
+            <span>Nombre:</span>
+          </div>
+          <div class="file_name_display" id="fileNameDisplay" title="">imagen.png</div>
         </div>
       </div>
+
+      <!-- RIGHT COLUMN (70%) -->
       <div class="opt_right">
-        <div class="config_section">
-          <h3><i class="fas fa-sliders-h"></i> Configuración</h3>
-          <div class="config_item">
-            <label for="quality"><i class="fas fa-star"></i> Calidad</label>
-            <input type="range" id="quality" value="80" min="10" max="100" step="5">
-            <div class="quality_display"><span id="qualityValue">80</span>%</div>
+        <div class="drop_preview_zone" id="dropZone">
+          <div class="drop_placeholder" id="dropPlaceholder">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <h2>Arrastra tu imagen aquí</h2>
+            <p>o presiona <kbd>Ctrl</kbd> + <kbd>V</kbd></p>
+            <small>PNG, JPG, JPEG, WEBP (máx 50MB)</small>
           </div>
-        </div>
-        <div class="files_section">
-          <div class="files_header">
-            <h3><i class="fas fa-images"></i> Archivos (<span id="filesCount">0</span>)</h3>
-            <button class="btn_clear_all" id="btnClearAll" title="Limpiar todo"><i class="fas fa-trash"></i></button>
-          </div>
-          <div class="files_list" id="filesList">
-            <div class="files_empty"><i class="fas fa-folder-open"></i><p>Sin archivos</p></div>
+          <input type="file" id="fileInput" accept="image/png,image/jpeg,image/jpg,image/webp" hidden>
+
+          <div class="preview_container" id="previewContainer" style="display:none;">
+            <img id="previewImage" src="" alt="Preview">
           </div>
         </div>
       </div>
@@ -79,11 +138,11 @@ export const init = () => {
   const $zone = $('#dropZone');
   
   // Events
-  $('#fileInput').on('change', e => procesarArchivos(e.target.files));
-  $('#btnOptimizeCurrent').on('click', optimizarActual);
-  $('#btnDownloadCurrent').on('click', descargarActual);
-  $('#btnClearAll').on('click', limpiarTodo);
-  $('#quality').on('input', function() { $('#qualityValue').text($(this).val()); });
+  $('#fileInput').on('change', e => procesarArchivo(e.target.files[0]));
+  $('#btnOptimize').on('click', optimizar);
+  $('#btnDownload').on('click', descargar);
+  $('#btnSelect').on('click', () => $('#fileInput').trigger('click'));
+  $('#btnDelete').on('click', eliminar);
   
   // Drag & Drop
   $zone.on('dragover', e => { e.preventDefault(); $zone.addClass('dragover'); });
@@ -91,123 +150,128 @@ export const init = () => {
   $zone.on('drop', e => {
     e.preventDefault();
     $zone.removeClass('dragover');
-    procesarArchivos(e.originalEvent.dataTransfer.files);
+    const file = e.originalEvent.dataTransfer.files[0];
+    if (file) procesarArchivo(file);
   });
-  $zone.on('dblclick', e => { e.preventDefault(); $('#fileInput').trigger('click'); });
+  $zone.on('dblclick', () => $('#fileInput').trigger('click'));
+
+  // 📋 CTRL + V (Paste)
+  $(document).on('paste', e => {
+    const items = e.originalEvent.clipboardData?.items;
+    if (!items) return;
+    
+    for (let item of items) {
+      if (item.type.indexOf('image') !== -1) {
+        const file = item.getAsFile();
+        if (file) {
+          procesarArchivo(file);
+          Notificacion('¡Imagen pegada desde portapapeles!', 'success', 2000);
+        }
+        break;
+      }
+    }
+  });
 };
 
-//  Procesar
-function procesarArchivos(files) {
-  let agregados = 0;
-  
-  Array.from(files).forEach(file => {
-    if (!file.type.match('image/(png|jpeg|jpg|webp)')) {
-      return Notificacion(`${file.name}: formato no soportado`, 'error', 2000);
-    }
-    if (file.size > 50 * 1024 * 1024) {
-      return Notificacion(`${file.name}: muy grande (máx 50MB)`, 'error', 2000);
-    }
+// 📂 Procesar Archivo
+function procesarArchivo(file) {
+  if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = e => {
-      const img = new Image();
-      img.onload = () => {
-        archivos.push({
-          id: Date.now() + Math.random(),
-          file,
-          original: {
-            url: e.target.result,
-            size: file.size,
-            width: img.width,
-            height: img.height,
-            name: file.name
-          },
-          optimizationCount: 0
-        });
-        
-        if (++agregados === files.length) {
-          actualizarUI();
-          if (archivos.length === agregados) mostrarImagen(0);
-          Notificacion(`${agregados} archivo(s) agregado(s)`, 'success', 2000);
-        }
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-// 🖼️ Mostrar
-function mostrarImagen(index) {
-  if (index < 0 || index >= archivos.length) return;
-  
-  archivoActual = index;
-  const archivo = archivos[index];
-
-  if ($('#dropZone').is(':visible')) {
-    $('#dropZone').fadeOut(200, () => $('#previewArea').removeClass('dpn').hide().fadeIn(300));
+  if (!file.type.match('image/(png|jpeg|jpg|webp)')) {
+    return Notificacion('Formato no soportado. Usa PNG, JPG o WEBP', 'error', 3000);
+  }
+  if (file.size > 50 * 1024 * 1024) {
+    return Notificacion('Archivo muy grande (máx 50MB)', 'error', 3000);
   }
 
-  $('#previewImage').attr('src', archivo.original.url);
-  $('#previewStats').removeClass('dpn').hide().fadeIn(200);
-  $('#statNombre').text(archivo.original.name);
-  $('#statDimensiones').text(`${archivo.original.width}×${archivo.original.height}`);
-  $('#statTamano').text(formatBytes(archivo.original.size));
-  $('#statOptimizaciones').text(archivo.optimizationCount > 0 ? `${archivo.optimizationCount}×` : '0×');
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      archivoOriginal = {
+        file,
+        url: e.target.result,
+        size: file.size,
+        width: img.width,
+        height: img.height,
+        name: file.name
+      };
+      
+      archivoOptimizado = null;
+      mostrarImagen();
+      Notificacion(`Imagen cargada: ${file.name}`, 'success', 2000);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
 
-  $('.file_item').removeClass('active');
-  $(`.file_item[data-id="${archivo.id}"]`).addClass('active');
+// 🖼️ Mostrar Imagen
+function mostrarImagen() {
+  if (!archivoOriginal) return;
+
+  $('#dropPlaceholder').hide();
+  $('#previewContainer').show();
+  $('#previewImage').attr('src', archivoOriginal.url);
+  
+  $('#originalSize').text(formatBytes(archivoOriginal.size));
+  $('#originalDimensions').text(`${archivoOriginal.width}×${archivoOriginal.height}`);
+  
+  $('#fileNameDisplay').text(archivoOriginal.name).attr('title', archivoOriginal.name);
+  
+  $('#infoSection, #fileNameSection').fadeIn(300);
+  $('#optimizedSize, #optimizedDimensions').text('--');
+  $('#reductionDisplay').hide();
 }
 
 // ✨ Optimizar
-async function optimizarActual() {
-  if (archivoActual === null) return;
+async function optimizar() {
+  if (!archivoOriginal) {
+    return Notificacion('Primero carga una imagen', 'warning', 2000);
+  }
   
-  const archivo = archivos[archivoActual];
-  const $btn = $('#btnOptimizeCurrent');
-  
+  const $btn = $('#btnOptimize');
   $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> <span>Procesando...</span>');
 
   try {
     const quality = parseInt($('#quality').val()) / 100;
+    const maxWidth = parseInt($('#maxWidth').val());
+    
     const options = {
       maxSizeMB: 50,
-      maxWidthOrHeight: Math.max(archivo.original.width, archivo.original.height),
+      maxWidthOrHeight: maxWidth,
       useWebWorker: true,
       initialQuality: quality
     };
 
     const inicio = performance.now();
-    const optimizedBlob = await imageCompression(archivo.file, options);
+    const optimizedBlob = await imageCompression(archivoOriginal.file, options);
     const fin = performance.now();
-
-    archivo.optimizationCount++;
 
     const reader = new FileReader();
     await new Promise(resolve => {
       reader.onload = e => {
         const img = new Image();
         img.onload = () => {
-          const reduccion = (((archivo.original.size - optimizedBlob.size) / archivo.original.size) * 100).toFixed(1);
+          const reduccion = (((archivoOriginal.size - optimizedBlob.size) / archivoOriginal.size) * 100).toFixed(1);
           
-          archivos.push({
-            id: Date.now() + Math.random(),
-            file: new File([optimizedBlob], archivo.original.name, { type: optimizedBlob.type }),
-            original: {
-              url: e.target.result,
-              size: optimizedBlob.size,
-              width: img.width,
-              height: img.height,
-              name: archivo.original.name
-            },
-            optimizationCount: 0,
+          archivoOptimizado = {
+            blob: optimizedBlob,
+            url: e.target.result,
+            size: optimizedBlob.size,
+            width: img.width,
+            height: img.height,
             reduccion,
-            tiempoCompresion: ((fin - inicio) / 1000).toFixed(2)
-          });
+            tiempo: ((fin - inicio) / 1000).toFixed(2)
+          };
 
-          actualizarUI();
-          mostrarImagen(archivos.length - 1);
-          Notificacion(`¡Optimizado! -${reduccion}%`, 'success', 2000);
+          $('#previewImage').attr('src', archivoOptimizado.url);
+          $('#optimizedSize').text(formatBytes(archivoOptimizado.size));
+          $('#optimizedDimensions').text(`${archivoOptimizado.width}×${archivoOptimizado.height}`);
+          $('#reductionPercent').text(`${reduccion}%`);
+          $('#reductionDisplay').fadeIn(300);
+
+          Notificacion(`¡Optimizado! Reducción: ${reduccion}% en ${archivoOptimizado.tiempo}s`, 'success', 3000);
           resolve();
         };
         img.src = e.target.result;
@@ -222,94 +286,50 @@ async function optimizarActual() {
   $btn.prop('disabled', false).html('<i class="fas fa-magic"></i> <span>Optimizar</span>');
 }
 
-// � Descargar
-function descargarActual() {
-  if (archivoActual === null) return;
+// 💾 Descargar
+function descargar() {
+  if (!archivoOptimizado) {
+    return Notificacion('Primero optimiza la imagen', 'warning', 2000);
+  }
   
-  const archivo = archivos[archivoActual];
-  const url = URL.createObjectURL(archivo.file);
+  const url = URL.createObjectURL(archivoOptimizado.blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = archivo.original.name;
+  a.download = `optimizado_${archivoOriginal.name}`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
   
-  wiTip('#btnDownloadCurrent', '¡Descargado! 🎉', 'success', 1500);
+  wiTip('#btnDownload', '¡Descargado! 🎉', 'success', 1500);
 }
 
-// 🧹 Limpiar
-function limpiarTodo() {
-  if (!archivos.length) return;
-  
-  archivos = [];
-  archivoActual = null;
-  $('#fileInput').val('');
-  $('#previewArea').fadeOut(200, () => $('#dropZone').fadeIn(300));
-  $('#previewStats').addClass('dpn');
-  actualizarUI();
-  Notificacion('Todo limpiado', 'success', 1500);
-}
-
-// 🔄 UI
-function actualizarUI() {
-  $('#filesCount').text(archivos.length);
-  actualizarListaArchivos();
-}
-
-function actualizarListaArchivos() {
-  const $lista = $('#filesList');
-  
-  if (!archivos.length) {
-    return $lista.html('<div class="files_empty"><i class="fas fa-folder-open"></i><p>Sin archivos</p></div>');
+// 🗑️ Eliminar
+function eliminar() {
+  if (!archivoOriginal && !archivoOptimizado) {
+    return Notificacion('No hay imagen para eliminar', 'warning', 2000);
   }
 
-  $lista.html(archivos.map((archivo, index) => {
-    const hasReduction = archivo.reduccion !== undefined;
-    const iconClass = hasReduction ? 'fa-check-circle' : 'fa-image';
-    const iconColor = hasReduction ? 'var(--success)' : 'var(--mco)';
-    
-    return `
-      <div class="file_item ${index === archivoActual ? 'active' : ''} ${hasReduction ? 'optimized' : ''}" data-id="${archivo.id}">
-        <div class="file_icon"><i class="fas ${iconClass}" style="color: ${iconColor}"></i></div>
-        <div class="file_info">
-          <span class="file_name">${archivo.original.name}</span>
-          <div class="file_meta">
-            <span class="file_size">${formatBytes(archivo.original.size)}</span>
-            ${hasReduction ? `<span class="file_reduction">-${archivo.reduccion}%</span>` : ''}
-          </div>
-        </div>
-        <button class="btn_file_delete" data-id="${archivo.id}"><i class="fas fa-times"></i></button>
-      </div>
-    `;
-  }).join(''));
-
-  $('.file_item').on('click', function(e) {
-    if ($(e.target).closest('.btn_file_delete').length) return;
-    const index = archivos.findIndex(a => a.id === $(this).data('id'));
-    if (index !== -1) mostrarImagen(index);
-  });
-
-  $('.btn_file_delete').on('click', function(e) {
-    e.stopPropagation();
-    const index = archivos.findIndex(a => a.id === $(this).data('id'));
-    if (index === -1) return;
-
-    archivos.splice(index, 1);
-    if (!archivos.length) return limpiarTodo();
-    
-    if (archivoActual >= archivos.length) archivoActual = archivos.length - 1;
-    mostrarImagen(archivoActual);
-    actualizarUI();
-  });
+  archivoOriginal = null;
+  archivoOptimizado = null;
+  
+  $('#previewContainer').hide();
+  $('#dropPlaceholder').show();
+  $('#previewImage').attr('src', '');
+  $('#infoSection, #fileNameSection').hide();
+  $('#fileInput').val('');
+  
+  $('#quality').val(80);
+  $('#maxWidth').val(1920);
+  
+  Notificacion('Imagen eliminada correctamente', 'success', 2000);
 }
 
 // 🧹 Cleanup
 export const cleanup = () => {
   console.log('🧹 Optimizar limpiado');
-  archivos = [];
-  archivoActual = null;
-  $('#fileInput, #btnOptimizeCurrent, #btnDownloadCurrent, #btnClearAll, #dropZone, #quality').off();
-  $('.file_item, .btn_file_delete').off();
+  archivoOriginal = null;
+  archivoOptimizado = null;
+  $('#fileInput, #btnOptimize, #btnDownload, #btnSelect, #btnDelete, #dropZone').off();
+  $(document).off('paste');
 };
