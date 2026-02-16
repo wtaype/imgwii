@@ -342,7 +342,6 @@ export const init = () => {
   // 🎉 MENSAJE DE BIENVENIDA (solo primera vez)
   if (!localStorage.getItem('imgwii_visited')) {
     setTimeout(() => {
-      Notificacion('¡Bienvenido a imgwii! 🎨 Todas tus imágenes se procesan localmente, 100% privado.', 'success', 5000);
       localStorage.setItem('imgwii_visited', 'true');
     }, 1000);
   }
