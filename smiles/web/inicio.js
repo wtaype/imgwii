@@ -318,8 +318,19 @@ export const init = () => {
     });
   });
 
-  // 🖱️ FLOATING ICONS CLICK
-  $('.floating_icon').on('click', function() {
+  // 🖱️ FLOATING ICONS HOVER & CLICK
+  $('.floating_icon').on('mouseenter', function() {
+    const title = $(this).attr('title');
+    if (title) {
+      $(this).data('wi-title', title).removeAttr('title');
+      wiTip(this, title, 'info', 0);
+    }
+  }).on('mouseleave', function() {
+    const title = $(this).data('wi-title');
+    if (title) $(this).attr('title', title);
+    $('.wiTip').removeClass('show');
+    setTimeout(() => $('.wiTip').remove(), 200);
+  }).on('click', function() {
     const link = $(this).data('link');
     if (link) {
       wiTip(this, '¡Vamos! 🚀', 'success', 1000);

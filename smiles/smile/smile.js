@@ -1,66 +1,154 @@
 import './smile.css';
 import $ from 'jquery';
-import { db } from './firebase.js';
-import { doc, setDoc, getDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
-import { savels, getls, Saludar, wiSpin, wiDate, Notificacion } from '../widev.js';
+import { auth } from '../firebase.js';
+import { onAuthStateChanged } from 'firebase/auth';
+import { getls, getNombre, Saludar } from '../widev.js';
+import { app } from '../wii.js';
+import { rutas } from '../rutas.js';
 
-export let smile = getls('wiSmile');
-const CACHE = 'wiNotas';
+// ── CONFIG & AUTH ─────────────────────────────────────────────────────────────
+const waitAuth = () => new Promise(r => {
+  if (auth.currentUser) return r(auth.currentUser);
+  const unsub = onAuthStateChanged(auth, u => { unsub(); r(u); });
+});
 
-export const render = async () => {
-  const cache = getls(CACHE);
-  const fecha = cache?.fechaUpdate ? wiDate(Timestamp).get(cache.fechaUpdate, 'DD/MM/YYYY HH:mm') : 'Sin notas';
-  return `
-   <div class="miweb">
-    <div class="mhead"><h1 class="mh1"><i class="fas fa-sticky-note"></i> ${Saludar()} ${smile.nombre}</h1></div>
-    <div class="mibody">
-     <textarea class="nota-text" placeholder="Empieza escribir tus notas">${cache?.notas || ''}</textarea>
-     <div class="nota-footer">
-      <span class="nota-fecha"><i class="far fa-clock"></i> ${cache?.fechaCreacion ? 'Actualizado' : 'Nota creada'}: ${fecha}</span>
-      <div class="nota-btns">
-       <button class="btn btn-save"><i class="fas fa-save"></i> Guardar</button>
-       <button class="btn btn-delete"><i class="fas fa-trash"></i> Eliminar</button>
-      </div>
-     </div>
-    </div>
-   </div>`;
+const getRawLs = (key) => {
+  try {
+    const r = JSON.parse(localStorage.getItem(key));
+    return Array.isArray(r) ? r : (r?.value && Array.isArray(r.value) ? r.value : []);
+  } catch { return []; }
 };
 
+// ── RENDER ────────────────────────────────────────────────────────────────────
+export const render = () => `
+  <div class="smw_dash">
+    
+    <!-- ══ HEADER PREMIUM (Glassmorphism Hero) ══ -->
+    <header class="smw_hero wi_fadeUp">
+      <div class="smw_hero_glow"></div>
+      <div class="smw_hero_content">
+        <div class="smw_hero_left">
+          <div class="smw_avatar_wrap">
+             <div class="smw_avatar" id="smwAvatar"></div>
+             <div class="smw_avatar_ring"></div>
+          </div>
+          <div class="smw_welcome">
+            <h1 id="smwSaludo">Cargando...</h1>
+            <p id="smwRole"><i class="fas fa-dove"></i> Dashboard de Fe</p>
+          </div>
+        </div>
+        <div class="smw_hero_quote" id="smwQuote">
+          <i class="fas fa-quote-left"></i>
+          <div class="smw_quote_body">
+            <p id="smwQuoteTxt">...</p>
+            <span id="smwQuoteRef">...</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ══ DASHBOARD DOS COLUMNAS ══ -->
+    <main class="smw_main">
+      
+      <!-- COLUMNA IZQUIERDA: MIS FRASES POSITIVAS -->
+      <section class="smw_col smw_phrases">
+        <div class="smw_sec_head">
+          <div class="smw_sec_info">
+            <h2><i class="fas fa-heart"></i> Mis Frases Positivas</h2>
+            <p>Tus promesas y versículos atesorados</p>
+          </div>
+          <a href="/citas" class="smw_add_btn nv_item" data-page="citas">
+            <i class="fas fa-plus"></i>
+          </a>
+        </div>
+        <div class="smw_phrases_list" id="smwPhrasesList">
+          <!-- Citas de wiFrases -->
+        </div>
+      </section>
+
+      <!-- COLUMNA DERECHA: ÚLTIMOS BLOGS -->
+      <section class="smw_col smw_blogs">
+        <div class="smw_sec_head">
+          <div class="smw_sec_info">
+            <h2><i class="fas fa-newspaper"></i> Últimos Blogs</h2>
+            <p>Inspiración y noticias de la comunidad</p>
+          </div>
+          <a href="/blog" class="smw_add_btn nv_item" data-page="blog">
+             <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+        <div class="smw_blogs_feed" id="smwBlogsFeed">
+          <!-- Posts de wi_blog_todo_nuevo -->
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+`;
+
+// ── LOGIC ─────────────────────────────────────────────────────────────────────
 export const init = async () => {
-  const cache = getls(CACHE);
-  
-  // Cargar desde Firebase si no hay cache
-  if (!cache) {
-    try {
-      const busq = await getDoc(doc(db, 'misnotas', smile.usuario));
-      if (busq.exists()) {
-        const data = busq.data();
-        $('.nota-text').val(data.notas);
-        savels(CACHE, data);
-        $('.nota-fecha').html(`<i class="far fa-clock"></i> Actualizado: ${wiDate(Timestamp).get(data.fechaUpdate, 'DD/MM/YYYY HH:mm')}`);
-        Notificacion('✅ Notas cargadas', 'success');
-      }
-    } catch(e) { console.error(e); Notificacion('❌ Error al cargar', 'error'); }
+  const user = await waitAuth();
+  if (!user) return;
+
+  const wi = getls('wiSmile');
+  if (!wi) return setTimeout(() => rutas.navigate('/login'), 100);
+
+  const nombre    = getNombre(wi.nombre || wi.usuario || '');
+  const iniciales = `${(wi.nombre || '?')[0]}${(wi.apellidos || '')[0] || ''}`.toUpperCase();
+
+  // 1. UPDATE HERO
+  $('.wi_fadeUp').addClass('visible');
+  $('#smwAvatar').text(iniciales);
+  $('#smwSaludo').html(`${Saludar()} <strong>${nombre}</strong>`);
+
+  // 2. LOAD FRASES POSITIVAS (Left Column)
+  const frases = getRawLs('wiFrases');
+  if (frases.length) {
+    // Para el Hero: una aleatoria
+    const fHero = frases[Math.floor(Math.random() * frases.length)];
+    $('#smwQuoteTxt').text(fHero.cita);
+    $('#smwQuoteRef').text(fHero.libro);
+
+    // Para la lista: las últimas 6
+    const list = [...frases].reverse().slice(0, 6);
+    $('#smwPhrasesList').html(list.map((f, i) => `
+      <div class="smw_phrase_card wi_fadeUp visible" style="animation-delay: ${i * 0.1}s">
+        <div class="smw_phrase_ico"><i class="fas fa-star"></i></div>
+        <div class="smw_phrase_body">
+          <p>"${f.cita}"</p>
+          <span>${f.libro}</span>
+        </div>
+      </div>
+    `).join(''));
+  } else {
+    $('#smwQuoteTxt').text("Dios es nuestro amparo y fortaleza.");
+    $('#smwQuoteRef').text("Salmos 46:1");
+    $('#smwPhrasesList').html('<div class="smw_empty"><i class="fas fa-seedling"></i><p>Aún no has guardado frases</p></div>');
   }
 
-  // Guardar
-  $('.btn-save').click(async function(){
-    const texto = $('.nota-text').val().trim();
-    if (!texto) return Notificacion('⚠️ Escribe algo primero', 'warning');
-    wiSpin(this, true);
-    try {
-      const cache = getls(CACHE);
-      await setDoc(doc(db, 'misnotas', smile.usuario), { email: smile.email, usuario: smile.nombre, notas: texto, fechaUpdate: serverTimestamp(), ...(!cache?.fechaCreacion && { fechaCreacion: serverTimestamp() }) }, { merge: true });
-      const ahora = Date.now();
-      savels(CACHE, { email: smile.email, usuario: smile.nombre, notas: texto, fechaUpdate: ahora, fechaCreacion: cache?.fechaCreacion || ahora });
-      $('.nota-fecha').html(`<i class="far fa-clock"></i> Actualizado: ${wiDate(Timestamp).get(ahora, 'DD/MM/YYYY HH:mm')}`);
-      Notificacion('✅ Guardado exitosamente!', 'success');
-    } catch(e) { console.error(e); Notificacion('❌ Error al guardar', 'error'); }
-    finally { wiSpin(this, false); }
-  });
+  // 3. LOAD ÚLTIMOS BLOGS (Right Column)
+  const posts = getRawLs('wi_blog_todo_nuevo');
+  if (posts.length) {
+    const feed = posts.slice(0, 4);
+    $('#smwBlogsFeed').html(feed.map((p, i) => `
+      <a href="/post/${p.slug}" class="smw_blog_item nv_item" data-page="post" data-id="${p.id}" style="animation-delay: ${i * 0.1}s">
+        <div class="smw_blog_img" style="background-image: url('${p.imagen}')"></div>
+        <div class="smw_blog_info">
+          <h4>${p.titulo}</h4>
+          <div class="smw_blog_meta">
+            <span><i class="fas fa-tag"></i> ${p.categoria}</span>
+            <span><i class="fas fa-clock"></i> ${p.tiempo_lectura || '2 min'}</span>
+          </div>
+        </div>
+      </a>
+    `).join(''));
+  } else {
+    $('#smwBlogsFeed').html('<div class="smw_empty"><i class="fas fa-newspaper"></i><p>No hay blogs recientes</p></div>');
+  }
 
-  // Eliminar
-  $('.btn-delete').click(function(){ if (!confirm('¿Eliminar todas las notas?')) return; $('.nota-text').val(''); $('.nota-fecha').html(`<i class="far fa-clock"></i> Nota creada: Sin notas`); Notificacion('🗑️ Notas eliminadas', 'info'); });
+  console.log(`🕊️ WiiHope Dashboard v2 — ${app}`);
 };
 
-export const cleanup = () => { console.log('😊 Smile limpiado'); };
+export const cleanup = () => {};

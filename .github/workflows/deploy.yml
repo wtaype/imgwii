@@ -1,4 +1,4 @@
-name: 🚀 Deploy loveye
+name: 🚀 Deploy imgwii
 
 on:
   push:
@@ -9,14 +9,13 @@ on:
 permissions:
   contents: write
   pages: write
-  id-token: write
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
       IS_TAG: ${{ github.ref_type == 'tag' }}
-      BASE_URL: ${{ github.ref_type == 'tag' && format('/loveye/{0}/', github.ref_name) || '/loveye/' }}
+      BASE_URL: ${{ github.ref_type == 'tag' && format('/imgwii/{0}/', github.ref_name) || '/imgwii/' }}
       DEST_DIR: ${{ github.ref_type == 'tag' && github.ref_name || '.' }}
       
     steps:
@@ -31,13 +30,6 @@ jobs:
 
       - name: 🏗️ Build for GitHub Pages
         run: npm run build -- --base=$BASE_URL
-        env:
-          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
-          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
-          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
-          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
-          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
-          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
 
       - name: 🐙 Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
@@ -47,6 +39,7 @@ jobs:
           publish_dir: ./dist
           destination_dir: ${{ env.DEST_DIR }}
           keep_files: true
+
 
       - name: 🔥 Build & Deploy to Firebase
         if: env.IS_TAG == 'false'
@@ -61,8 +54,12 @@ jobs:
           VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
           VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
           VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+          VITE_EMAILJS_SERVICE_ID: ${{ secrets.VITE_EMAILJS_SERVICE_ID }}
+          VITE_EMAILJS_TEMPLATE_ID: ${{ secrets.VITE_EMAILJS_TEMPLATE_ID }}
+          VITE_EMAILJS_PUBLIC_KEY: ${{ secrets.VITE_EMAILJS_PUBLIC_KEY }}
 
       - run: |
           echo "✅ Deploy completado!"
-          echo "🔥 Firebase: https://loveye.web.app (solo main)"
-          echo "🐙 GitHub: https://wtaype.github.io/loveye/${{ env.DEST_DIR }}"
+          echo "🗺️ Sitemap: https://imgwii.com/sitemap.xml"
+          echo "🔥 Firebase: https://imgwii.com (solo main)"
+          echo "🐙 GitHub: https://wtaype.github.io/imgwii/${{ env.DEST_DIR }}"

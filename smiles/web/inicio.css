@@ -25,6 +25,10 @@
   animation: slideInLeft 0.8s ease;
 }
 
+.saludo_texto {
+    font-weight: 700;
+}
+
 .saludo_emoji {
   font-size: var(--fz_l1);
   animation: wave 1.5s infinite;
@@ -80,7 +84,7 @@
 
 .hero_subtitle {
   font-size: var(--fz_m4);
-  color: var(--txe);
+  color: var(--tx1);
   line-height: 1.7;
   margin-bottom: 4vh;
   max-width: 600px;
@@ -120,7 +124,7 @@
 
 .stat_label {
   font-size: var(--fz_s4);
-  color: var(--txe);
+  color: var(--tx2);
   font-weight: 500;
 }
 
@@ -170,7 +174,7 @@
 .btn_secondary {
   background: transparent;
   color: var(--tx);
-  border-color: var(--bg5);
+  border-color: var(--brd);
 }
 
 .btn_secondary:hover {
@@ -246,7 +250,7 @@
   bottom: 10%;
   right: 10%;
   background: var(--success);
-  color: var(--F);
+  color: #fff;
   padding: 1vh 2vw;
   border-radius: 50px;
   font-size: var(--fz_s4);
@@ -362,7 +366,7 @@
 
 .feature_card p {
   font-size: var(--fz_m2);
-  color: var(--txe);
+  color: var(--tx2);
   line-height: 1.6;
 }
 
@@ -449,7 +453,7 @@
 
 .nav_card_desc {
   font-size: var(--fz_m2);
-  color: var(--txe);
+  color: var(--tx2);
   line-height: 1.6;
 }
 
@@ -469,11 +473,9 @@
 
 /* ==================== ESTADÍSTICAS ==================== */
 .stats_section {
-  padding: 6vh 5vw;
-  background: linear-gradient(135deg, var(--mco) 0%, var(--hv) 100%);
-  border-radius: 2vh;
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
-  margin: 8vh 0;
+  padding: 8vh 0;
+  background: transparent;
+  margin: 4vh 0;
 }
 
 .stats_grid {
@@ -484,31 +486,30 @@
 
 .stat_box {
   text-align: center;
-  padding: 3vh 2vw;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
+  padding: 4vh 2vw;
+  background: var(--wb);
   border-radius: 1.5vh;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid var(--brd);
   transition: all 0.4s;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
 .stat_box:hover {
-  transform: translateY(-5px);
-  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-8px);
+  border-color: var(--mco);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.1);
 }
 
 .stat_box .stat_number {
   font-size: var(--fz_x2);
   font-weight: 900;
-  color: var(--F);
+  color: var(--mco);
   margin-bottom: 1vh;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .stat_box .stat_label {
   font-size: var(--fz_m3);
-  color: var(--F);
-  opacity: 0.95;
+  color: var(--tx2);
   font-weight: 600;
 }
 
@@ -560,7 +561,7 @@
 
 .tech_card p {
   font-size: var(--fz_s4);
-  color: var(--txe);
+  color: var(--tx2);
   line-height: 1.4;
 }
 

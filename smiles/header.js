@@ -1,46 +1,44 @@
-import './auth/wiauth.js';
 import $ from 'jquery';
-import { rutas } from './rutas/ruta.js';
-import { getls, removels, Mensaje } from './widev.js';
+import { app, icon } from './wii.js';
+import { rutas, NAV } from './rutas.js';
+import { Mensaje, wiAuth } from './widev.js';
 
-export function personal(wi) {
-  Mensaje?.('Bienvenido '+wi.nombre);
-  $('.wiauth').html(`
-    <div class="sesion">
-      <img src="${wi.imagen||'./smile.avif'}" alt="${wi.nombre}"><span>${wi.nombre}</span>
-    </div>
-    <button class="bt_salir"><i class="fas fa-sign-out-alt"></i> <span> Salir </span></button>
-  `);
-  rutas.navigate('/smile');
-} // Funcion para Auth personal 
+// ── LOGO — generado desde wii.js ─────────────────────────────────────────────
+const LOGO = `<a href="/"><i class="fa-solid ${icon}"></i> ${app}</a>`;
 
-export const header = (() => {
-  let wi = getls('wiSmile'); wi ? cargandoPersonal(wi) : publico(); //Cache Primero
+// ── MOTOR DE RENDERIZADO ──────────────────────────────────────────────────────
+const buildNav = (items, wi) => items.map(i => {
+  if (i.isBtn) return `<button class="${i.cls}"><i class="fas ${i.ico}"></i><span>${i.txt}</span></button>`;
+  if (i.isPerfil) return `<a href="/perfil" class="nv_item" data-page="perfil"><img src="${wi?.avatar || `${import.meta.env.BASE_URL}smile.avif`}" alt="${wi?.nombre}"><span>${wi?.nombre}</span></a>`;
+  if (i.isSalir) return `<button class="nv_item bt_salir" data-page="inicio"><i class="fa-solid fa-sign-out-alt"></i> <span>Salir</span></button>`;
+  return `<a href="${i.href}" class="nv_item" data-page="${i.page}"><i class="fas ${i.ico}"></i> <span>${i.txt}</span></a>`;
+}).join('');
 
-  function publico() {
-    $('.wiauth').html(`
-      <button class="wibtn_auth registrar"><i class="fas fa-user-plus"></i><span>Registrar</span></button>
-      <button class="wibtn_auth login"><i class="fas fa-sign-in-alt"></i><span>Login</span></button>
-  `);
-  }
+const renderHeader = (wi) => {
+  const cfg = NAV[wi?.rol] ?? NAV.todos;
   
-  async function cargandoPersonal(wi) {
-    personal(wi);
-//ACTUALIZAR CAMBIOS EN TIEMPO REAL
-    const { auth, onAuthStateChanged } = await import('./auth/wiauth.js');
-    onAuthStateChanged(auth, user => {
-      if (!user) return removels('wiSmile'), publico();
-    });
-  }
+  const wilogo = document.querySelector('.wilogo');
+  if (wilogo) wilogo.innerHTML = LOGO;
+  
+  const winav = document.querySelector('.winav');
+  if (winav) winav.innerHTML = buildNav(cfg.nvleft, wi);
+  
+  const nv_right = document.querySelector('.nv_right');
+  if (nv_right) nv_right.innerHTML = buildNav(cfg.nvright, wi);
+};
 
-  window.addEventListener('wiFresh', (e) => cargandoPersonal(e.detail));
-//CERRAR SESSIÓN
-  $(document).on('click', '.bt_salir', async () => {
-    const { auth, signOut } = await import('./auth/wiauth.js');
-    await signOut(auth);
-    ['wiflash', 'wiTema'].map(k => [k, getls(k)]).concat(localStorage.clear()) && localStorage.setItem('wiflash', JSON.stringify(getls('wiflash'))) && localStorage.setItem('wiTema', JSON.stringify(getls('wiTema')));
-    location.reload();
-  });
+// ── AUTH LISTENER ─────────────────────────────────────────────────────────────
+wiAuth.on(wi => wi ? renderHeader(wi) : (renderHeader(), rutas.navigate('/')));
+const wi = wiAuth.user; wi ? renderHeader(wi) : renderHeader();
 
-})();
+// ── EVENTOS GLOBALES ──────────────────────────────────────────────────────────
+$(document).on('click', '.bt_salir', async () => {
+  const { salir } = await import('./web/login.js');
+  salir(['wiTema', 'wiSmart']);
+});
 
+$(document).on('mouseenter touchstart', '.bt_auth', () => import('./web/login.js'));
+$(document).on('click', '.bt_auth', async function () {
+  const { abrirLogin } = await import('./web/login.js');
+  abrirLogin($(this).hasClass('registrar') ? 'registrar' : 'login');
+});
