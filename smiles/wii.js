@@ -8,16 +8,16 @@ export let lanzamiento = 2026;
 export let by = '@wilder.taype';
 export let linkme = 'https://wtaype.github.io/';
 export let ipdev = import.meta.env.VITE_DEV;
-export let version = 'v16';
+export let version = 'v17';
 
 /** ACTUALIZAR AL TAG POR SEGURIDAD [TAG NUEVO] (1)
-git tag v16 -m "Version v16" ; git push origin v16
+git tag v17 -m "Version v17" ; git push origin v17
 
 ACTUALIZACIÓN AL MAIN PRINCIPAL DEL PROYECTO [MAIN] (2)
-git add . ; git commit -m "Actualizacion Principal v16.10.10" ; git push origin main
+git add . ; git commit -m "Actualizacion Principal v17.10.10" ; git push origin main
 
 // REEMPLAZAR TAG DE SEGURIDAD EXISTENTE [TAG REMPLAZO] (3)
-git tag -d v16 ; git tag v16 -m "Version v16 actualizada" ; git push origin v16 --force
+git tag -d v17 ; git tag v17 -m "Version v17 actualizada" ; git push origin v17 --force
 
 // PARA ACTUALIZAR SITEMAP EFFICIENTE (4)
 npm run sitemap
