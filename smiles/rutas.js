@@ -5,12 +5,12 @@ import * as inicioMod from './web/inicio.js';
 
 // ── NAV COMUN — rutas compartidas entre todos los roles ────────────────────────
 const COMUN = [
+  { href: '/convertirpro',   page: 'convertirpro',   ico: 'fa-gem', txt: 'Convertir Pro' },
+  { href: '/editorpro',   page: 'editorpro',   ico: 'fa-gem',        txt: 'Editor Pro'    },
   { href: '/convertir',   page: 'convertir',   ico: 'fa-exchange-alt', txt: 'Convertir' },
-  { href: '/convertirpro',   page: 'convertirpro',   ico: 'fa-crown', txt: 'Convertir Pro' },
-  { href: '/optimizar',   page: 'optimizar',   ico: 'fa-bolt',         txt: 'Optimizar' },
   { href: '/comprimir',   page: 'comprimir',   ico: 'fa-compress',     txt: 'Comprimir' },
   { href: '/editar',      page: 'editar',      ico: 'fa-crop-simple',  txt: 'Editar'    },  
-  { href: '/precios',     page: 'precios',     ico: 'fa-gem',        txt: 'Planes'    },
+  { href: '/precios',     page: 'precios',     ico: 'fa-store',        txt: 'Planes'    },
 ];
 
 // ── NAV — Config visual por rol (nvleft = izquierda, nvright = derecha) ────────
@@ -71,6 +71,7 @@ export const RUTAS = [
   { path: '/inicio',       area: 'web/', meta: { title: 'ImgWii — Editor y Optimizador con IA', desc: 'Edita, optimiza y comprime tus imágenes online con inteligencia artificial. Rápido y gratis.' }},
   { path: '/convertir',    area: 'web/', meta: { title: 'Convertir Imágenes — ImgWii', desc: 'Convierte tus imágenes a WebP, PNG, JPG o AVIF en segundos sin perder calidad.' }},
   { path: '/convertirpro',    area: 'web/', meta: { title: 'Convertir Imágenes Pro — ImgWii', desc: 'Convierte tus imágenes a WebP, PNG, JPG o AVIF en segundos sin perder calidad nivel pro.' }},
+  { path: '/editorpro',    area: 'web/', meta: { title: 'Editor de Imágenes Pro — ImgWii', desc: 'Editor de imágenes nivel profesional para usuarios exigentes.' }},
   { path: '/optimizar',    area: 'web/', meta: { title: 'Optimizar Imágenes — ImgWii', desc: 'Mejora la calidad, ajusta colores y mejora tus imágenes usando inteligencia artificial.' }},
   { path: '/comprimir',    area: 'web/', meta: { title: 'Comprimir Imágenes — ImgWii', desc: 'Reduce el peso de tus imágenes drásticamente para mejorar el SEO y velocidad de tu web.' }},
   { path: '/editar',       area: 'web/', meta: { title: 'Editar Imágenes — ImgWii', desc: 'Herramientas de edición potentes: recorta, ajusta y aplica filtros a tus imágenes online.' }},
