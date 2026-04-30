@@ -13,7 +13,7 @@ const inicioHg = 720;  // Alto por defecto del documento
 // ============================================================
 // 📊 ESTADO GLOBAL
 // ============================================================
-let docConfig = { width: inicioWd, height: inicioHg, bg: 'white', quality: 80 };
+let docConfig = { width: inicioWd, height: inicioHg, bg: '#ffffff', quality: 80 };
 let docCreado = false;
 let canvas = null, ctx = null;
 
@@ -60,45 +60,50 @@ export const render = () => `
           <div class="pw_card_header">
             <i class="fas fa-file-alt"></i>
             <h3>Documento</h3>
+            <button class="pw_btn pw_btn_outline" id="pwBtnSaveSize" title="Guardar Medida" style="padding: 0.5vh 1vh; font-size: var(--fz_s4);"><i class="fas fa-check"></i></button>
+            <button class="pw_btn pw_btn_danger" id="pwBtnLimpiar" title="Limpiar Todo" style="padding: 0.5vh 1vh; font-size: var(--fz_s4); margin-left: 0.5vh;"><i class="fas fa-trash-alt"></i></button>
           </div>
           
-          <div class="pw_form_row">
-            <label>Ancho</label>
-            <div class="pw_input_wrap">
-              <input type="number" id="pwDocW" value="${inicioWd}" min="100" max="8000">
-              <span class="pw_unit">px</span>
+          <div class="pw_saved_sizes" id="pwSavedSizesRow" style="display: flex; gap: 0.5vh; margin-bottom: 1.5vh; overflow-x: auto; padding-bottom: 0.5vh;"></div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1vh; margin-bottom: 1.5vh;">
+            <div class="pw_form_row" style="margin:0;">
+              <label style="width: auto;">Ancho</label>
+              <div class="pw_input_wrap">
+                <input type="number" id="pwDocW" value="${inicioWd}" min="100" max="8000">
+              </div>
             </div>
-          </div>
-          <div class="pw_form_row">
-            <label>Alto</label>
-            <div class="pw_input_wrap">
-              <input type="number" id="pwDocH" value="${inicioHg}" min="100" max="8000">
-              <span class="pw_unit">px</span>
+            <div class="pw_form_row" style="margin:0;">
+              <label style="width: auto;">Alto</label>
+              <div class="pw_input_wrap">
+                <input type="number" id="pwDocH" value="${inicioHg}" min="100" max="8000">
+              </div>
             </div>
           </div>
 
-          <div class="pw_radio_group">
-            <label class="pw_radio_btn">
-              <input type="radio" name="pw_bg" value="white" checked>
-              <span>Blanco</span>
-              <div class="pw_bg_preview pw_bg_white"></div>
-              <div class="pw_radio_bg"></div>
-            </label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1vh; margin-bottom: 1.5vh;">
             <label class="pw_radio_btn">
               <input type="radio" name="pw_bg" value="transparent">
               <span>Transparente</span>
               <div class="pw_bg_preview pw_bg_trans"></div>
               <div class="pw_radio_bg"></div>
             </label>
+            <label class="pw_radio_btn">
+              <input type="radio" name="pw_bg" value="color" checked>
+              <input type="color" id="pwBgColor" value="#ffffff" style="width: 2.5vh; height: 2.5vh; border: none; padding: 0; cursor: pointer; border-radius: 50%;">
+              <span>Color</span>
+              <div class="pw_radio_bg"></div>
+            </label>
           </div>
 
-          <div class="pw_actions">
-            <button class="pw_btn pw_btn_primary" id="pwBtnCrear">
-              <i class="fas fa-magic"></i> Crear Doc
-            </button>
-            <button class="pw_btn pw_btn_danger" id="pwBtnLimpiar" title="Reiniciar todo" disabled>
-              <i class="fas fa-trash-alt"></i>
-            </button>
+          <div class="pw_quality_wrap" style="margin-bottom: 1vh;">
+            <label style="font-size: var(--fz_s3); font-weight: 600; color: var(--tx); white-space:nowrap;"><i class="fas fa-sliders-h"></i> Calidad</label>
+            <input type="range" id="pwQuality" min="10" max="100" value="80">
+            <div class="pw_quality_num_wrap"><input type="number" id="pwQualityTxt" value="80"></div>
+          </div>
+
+          <div class="pw_fmt_toggles" id="pwFmtToggles" style="margin-top:0; padding-top:0; border:none;">
+            <div class="pw_toggles_row" id="pwTogglesRow"></div>
           </div>
         </div>
 
@@ -118,26 +123,6 @@ export const render = () => `
           </div>
         </div>
 
-        <!-- Card 3: Capa Activa -->
-        <div class="pw_card" id="pwCardCapaActiva" style="display:none;">
-          <div class="pw_card_header">
-            <i class="fas fa-sliders-h"></i>
-            <h4>Transformar Capa</h4>
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1vh; margin-bottom: 1.5vh;">
-            <div class="pw_form_row" style="margin:0;"><label style="width:auto;margin-right:1vh;">X</label><div class="pw_input_wrap"><input type="number" id="pwCapaX"></div></div>
-            <div class="pw_form_row" style="margin:0;"><label style="width:auto;margin-right:1vh;">Y</label><div class="pw_input_wrap"><input type="number" id="pwCapaY"></div></div>
-            <div class="pw_form_row" style="margin:0;"><label style="width:auto;margin-right:1vh;">W</label><div class="pw_input_wrap"><input type="number" id="pwCapaW"></div></div>
-            <div class="pw_form_row" style="margin:0;"><label style="width:auto;margin-right:1vh;">H</label><div class="pw_input_wrap"><input type="number" id="pwCapaH"></div></div>
-          </div>
-          
-          <div class="pw_quality_wrap">
-            <label style="font-size: var(--fz_s3); font-weight: 600; color: var(--tx); width: 4vh;"><i class="fas fa-eye"></i></label>
-            <input type="range" id="pwCapaOp" min="0" max="100" value="100">
-            <div class="pw_quality_num_wrap"><input type="text" id="pwCapaOpTxt" value="100" readonly></div>
-          </div>
-        </div>
-
         <!-- Card 4: Ajuste Color -->
         <div class="pw_card" id="pwCardColor" style="display:none;">
           <div class="pw_card_header">
@@ -151,25 +136,23 @@ export const render = () => `
           <div class="pw_filter"><div class="pw_filter_top"><label><i class="fas fa-moon"></i> Sombras</label><span class="pw_filter_val" id="val_shadows">0</span></div><input type="range" id="f_shadows" min="-100" max="100" value="0"></div>
         </div>
 
-        <!-- Card 5: Exportar -->
-        <div class="pw_card" id="pwCardExport" style="opacity: 0.5; pointer-events: none;">
+        <!-- Card 3: Capa Activa (Transformar Capa) -->
+        <div class="pw_card" id="pwCardCapaActiva" style="display:none;">
           <div class="pw_card_header">
-            <i class="fas fa-download"></i>
-            <h4>Exportación</h4>
+            <i class="fas fa-sliders-h"></i>
+            <h4>Transformar Capa</h4>
           </div>
-          <div class="pw_quality_wrap">
-            <label style="font-size: var(--fz_s3); font-weight: 600; color: var(--tx); white-space:nowrap;"><i class="fas fa-sliders-h"></i> Calidad</label>
-            <input type="range" id="pwQuality" min="10" max="100" value="80">
-            <div class="pw_quality_num_wrap"><input type="number" id="pwQualityTxt" value="80"></div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1vh; margin-bottom: 1.5vh;">
+            <div class="pw_form_row" style="margin:0;"><label style="width:auto;margin-right:1vh;">X</label><div class="pw_input_wrap"><input type="number" id="pwCapaX"></div></div>
+            <div class="pw_form_row" style="margin:0;"><label style="width:auto;margin-right:1vh;">Y</label><div class="pw_input_wrap"><input type="number" id="pwCapaY"></div></div>
+            <div class="pw_form_row" style="margin:0;"><label style="width:auto;margin-right:1vh;">W</label><div class="pw_input_wrap"><input type="number" id="pwCapaW"></div></div>
+            <div class="pw_form_row" style="margin:0;"><label style="width:auto;margin-right:1vh;">H</label><div class="pw_input_wrap"><input type="number" id="pwCapaH"></div></div>
           </div>
-          <div class="pw_fmt_toggles" id="pwFmtToggles">
-            <span class="pw_toggles_lbl"><i class="fas fa-layer-group"></i> Formatos a exportar:</span>
-            <div class="pw_toggles_row" id="pwTogglesRow"></div>
-          </div>
-          <div style="margin-top: 1.5vh;">
-            <button class="pw_btn pw_btn_primary" id="pwBtnExport" style="width: 100%;">
-              <i class="fas fa-rocket"></i> Iniciar Exportación
-            </button>
+          
+          <div class="pw_quality_wrap" style="margin-bottom:0;">
+            <label style="font-size: var(--fz_s3); font-weight: 600; color: var(--tx); width: 4vh;"><i class="fas fa-eye"></i></label>
+            <input type="range" id="pwCapaOp" min="0" max="100" value="100">
+            <div class="pw_quality_num_wrap"><input type="text" id="pwCapaOpTxt" value="100" readonly></div>
           </div>
         </div>
 
@@ -266,10 +249,22 @@ export const init = async () => {
 
   renderToggles();
 
-  // Documento
-  $('#pwBtnCrear').on('click', crearDocumento);
+  // Documento y Medidas Guardadas
+  renderSavedSizes();
+  $('#pwBtnSaveSize').on('click', guardarMedida);
   $('#pwBtnLimpiar').on('click', limpiar);
   
+  $('#pwSavedSizesRow').on('click', '.pw_saved_size_btn', function() {
+    $('#pwDocW').val($(this).data('w'));
+    $('#pwDocH').val($(this).data('h')).trigger('input');
+  });
+  
+  $('#pwSavedSizesRow').on('click', '.pw_saved_size_clear', function() {
+    localStorage.removeItem('miswids');
+    renderSavedSizes();
+    Notificacion('Medidas eliminadas', 'info');
+  });
+
   $('#pwDocW, #pwDocH').on('input', function() {
     if (docCreado) {
       docConfig.width = parseInt($('#pwDocW').val()) || 800;
@@ -278,11 +273,12 @@ export const init = async () => {
     }
   });
 
-  $('input[name="pw_bg"]').on('change', function() {
+  $('input[name="pw_bg"], #pwBgColor').on('change input', function(e) {
     if (docCreado) {
-      docConfig.bg = $(this).val();
+      const type = $('input[name="pw_bg"]:checked').val();
+      docConfig.bg = type === 'color' ? $('#pwBgColor').val() : 'transparent';
       renderCanvas();
-      guardarEstado('Fondo cambiado');
+      if (e.type === 'change') guardarEstado('Fondo cambiado');
     }
   });
 
@@ -312,7 +308,6 @@ export const init = async () => {
   });
 
   $('#pwTogglesRow').on('click', '.pw_toggle_btn', function() { activarToggle($(this).data('fmt')); });
-  $('#pwBtnExport').on('click', exportarTodos);
   $('#pwFormatsRow').on('click', '.pw_fmt_btn_dl', function() { descargarFormato($(this).data('fmt'), this); });
 
   // Transformaciones de capa (Card 3)
@@ -360,12 +355,43 @@ export const init = async () => {
 };
 
 // ============================================================
-// 📄 DOCUMENTO BASE
+// 📄 DOCUMENTO BASE & MEDIDAS
 // ============================================================
+function renderSavedSizes() {
+  const guardados = JSON.parse(localStorage.getItem('miswids') || '[]');
+  const $cont = $('#pwSavedSizesRow');
+  if (guardados.length === 0) { $cont.empty(); return; }
+  
+  let html = '';
+  guardados.forEach(sz => {
+    html += `<button class="pw_saved_size_btn" data-w="${sz.w}" data-h="${sz.h}" title="Aplicar" style="white-space:nowrap; padding: 0.4vh 1vh; font-size: var(--fz_s4); border-radius: 10vh; background: var(--bg1); border: 1.5px solid var(--bg5); color: var(--tx); cursor: pointer; transition: border-color 0.2s;">${sz.w} × ${sz.h}</button>`;
+  });
+  html += `<button class="pw_saved_size_clear" title="Borrar guardados" style="padding: 0.4vh 1vh; font-size: var(--fz_s4); border-radius: 10vh; background: transparent; border: 1.5px solid var(--error); color: var(--error); cursor: pointer;"><i class="fas fa-times"></i></button>`;
+  $cont.html(html);
+}
+
+function guardarMedida() {
+  const w = parseInt($('#pwDocW').val());
+  const h = parseInt($('#pwDocH').val());
+  if (!w || !h || w < 10 || h < 10) return Notificacion('Medida inválida', 'error');
+  
+  let guardados = JSON.parse(localStorage.getItem('miswids') || '[]');
+  if (!guardados.some(s => s.w === w && s.h === h)) {
+    guardados.unshift({w, h});
+    if (guardados.length > 6) guardados.pop(); // Max 6 medidas
+    localStorage.setItem('miswids', JSON.stringify(guardados));
+    renderSavedSizes();
+    Notificacion('Medida guardada', 'success');
+  } else {
+    Notificacion('Esta medida ya está guardada', 'info');
+  }
+}
+
 function crearDocumento() {
   const w = parseInt($('#pwDocW').val()) || 800;
   const h = parseInt($('#pwDocH').val()) || 600;
-  const bg = $('input[name="pw_bg"]:checked').val();
+  const bgType = $('input[name="pw_bg"]:checked').val();
+  const bg = bgType === 'color' ? $('#pwBgColor').val() : 'transparent';
   
   if (w < 10 || h < 10 || w > 8000 || h > 8000) return Notificacion('Dimensiones inválidas', 'error');
 
@@ -674,8 +700,9 @@ function renderCanvas() {
   
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   
-  if (docConfig.bg === 'white') {
-    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  if (docConfig.bg !== 'transparent') {
+    ctx.fillStyle = docConfig.bg;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
   
   capas.forEach(c => {
@@ -911,36 +938,7 @@ function scheduleEstimacion() {
   }, 500);
 }
 
-async function exportarTodos() {
-  if (!docCreado) return;
-  const activos = FORMATOS.filter(f => f.enabled);
-  if (!activos.length) return Notificacion('Selecciona al menos un formato', 'warning');
-  
-  const $btn = $('#pwBtnExport');
-  $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Exportando...');
-  
-  // Render final asegúrando que todo está ok
-  renderCanvas();
-  
-  for (let fmt of activos) {
-    try {
-      $(`#pwBar_${fmt.id}`).css('width', '10%').removeClass('pw_bar_done');
-      
-      const q = fmt.id === 'png' ? undefined : docConfig.quality / 100;
-      const blob = await canvasToBlob(canvas, `image/${fmt.id}`, q);
-      
-      $(`#pwBar_${fmt.id}`).css('width', '100%').addClass('pw_bar_done');
-      $(`#pwCard_${fmt.id}`).addClass('pw_fmt_done');
-      
-    } catch(e) {
-      $(`#pwBar_${fmt.id}`).css({ width: '100%', background: 'var(--error)' });
-    }
-  }
-  
-  $btn.prop('disabled', false).html('<i class="fas fa-rocket"></i> Exportación Completa');
-  setTimeout(() => $btn.html('<i class="fas fa-rocket"></i> Iniciar Exportación'), 2000);
-  Notificacion('¡Listos para descargar!', 'success');
-}
+
 
 async function descargarFormato(id, btn) {
   const fmt = FORMATOS.find(f => f.id === id);
@@ -992,7 +990,8 @@ function aplicarEstado(st) {
   docConfig.width = st.w; docConfig.height = st.h; docConfig.bg = st.bg;
   canvas.width = st.w; canvas.height = st.h;
   actualizarDimensionesBadge();
-  $('input[name="pw_bg"][value="' + st.bg + '"]').prop('checked', true);
+  $('input[name="pw_bg"][value="' + (st.bg === 'transparent' ? 'transparent' : 'color') + '"]').prop('checked', true);
+  if (st.bg !== 'transparent') $('#pwBgColor').val(st.bg);
   
   capas = st.capas.map(c => ({ ...c, filtros: { ...c.filtros } })); // Restore copy
   
