@@ -5,15 +5,22 @@ import { Notificacion } from '../widev.js';
 import { formatBytes, baseName, cargarImagen, initCargaSistema, canvasToBlob, descargarBlob, estimarTamano, Historial } from './adevs.js';
 
 // ============================================================
+// 📐 CONFIGURACIÓN INICIAL DEL DOCUMENTO
+// ============================================================
+const inicioWd = 1200; // Ancho por defecto del documento
+const inicioHg = 720;  // Alto por defecto del documento
+
+// ============================================================
 // 📊 ESTADO GLOBAL
 // ============================================================
-let docConfig = { width: 800, height: 600, bg: 'white', quality: 80 };
+let docConfig = { width: inicioWd, height: inicioHg, bg: 'white', quality: 80 };
 let docCreado = false;
 let canvas = null, ctx = null;
 
 let capas = [];
 let capaActiva = null;
 let layerIdCount = 0;
+let nombreBase = 'PhotoWii_Doc'; // Nombre base del archivo de salida (primer imagen)
 
 const historial = new Historial(7);
 let unbindCarga = null;
@@ -58,14 +65,14 @@ export const render = () => `
           <div class="pw_form_row">
             <label>Ancho</label>
             <div class="pw_input_wrap">
-              <input type="number" id="pwDocW" value="800" min="100" max="8000">
+              <input type="number" id="pwDocW" value="${inicioWd}" min="100" max="8000">
               <span class="pw_unit">px</span>
             </div>
           </div>
           <div class="pw_form_row">
             <label>Alto</label>
             <div class="pw_input_wrap">
-              <input type="number" id="pwDocH" value="600" min="100" max="8000">
+              <input type="number" id="pwDocH" value="${inicioHg}" min="100" max="8000">
               <span class="pw_unit">px</span>
             </div>
           </div>
@@ -185,7 +192,7 @@ export const render = () => `
             <button id="pwBtnFlipH" title="Voltear H"><i class="fas fa-arrows-alt-h"></i></button>
             <button id="pwBtnFlipV" title="Voltear V"><i class="fas fa-arrows-alt-v"></i></button>
           </div>
-          <div class="pw_doc_dim_badge" id="pwDocDimBadge">800 × 600</div>
+          <div class="pw_doc_dim_badge" id="pwDocDimBadge">${inicioWd} × ${inicioHg}</div>
         </div>
 
         <!-- Crop Bar -->
@@ -347,6 +354,9 @@ export const init = async () => {
 
   initCrop();
   initLayerDragAndResize();
+
+  // ── Auto-crear el documento con las dimensiones por defecto al cargar ──
+  crearDocumento();
 };
 
 // ============================================================
@@ -411,6 +421,11 @@ async function agregarCapas(files) {
         rotate: 0, flipH: 1, flipV: 1,
         filtros: { ...defaultFiltros }
       };
+
+      // Guardar nombre de la primera imagen como nombre base del archivo de salida
+      if (capas.length === 0) {
+        nombreBase = file.name.replace(/\.[^/.]+$/, ''); // Quitar extensión
+      }
 
       // Fit dentro del documento
       const ratio = Math.min(docConfig.width / capa.w, docConfig.height / capa.h, 1);
@@ -938,7 +953,7 @@ async function descargarFormato(id, btn) {
   try {
     const q = fmt.id === 'png' ? undefined : docConfig.quality / 100;
     const blob = await canvasToBlob(canvas, `image/${fmt.id}`, q);
-    const name = `PhotoWii_Doc.${fmt.ext}`;
+    const name = `${nombreBase}.${fmt.ext}`; // Usa el nombre de la primera imagen
     descargarBlob(blob, name);
     Notificacion(`¡${fmt.label} descargado!`, 'success');
   } catch(e) {
@@ -1002,6 +1017,7 @@ function updateUndoUI() {
 function limpiar() {
   if (unbindCarga) unbindCarga();
   docCreado = false; canvas = null; ctx = null; capas = []; capaActiva = null; layerIdCount = 0;
+  nombreBase = 'PhotoWii_Doc'; // Resetear nombre al limpiar
   historial.reset();
   
   $('#pwLayersDiv').empty();
