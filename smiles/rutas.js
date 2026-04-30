@@ -9,16 +9,19 @@ const COMUN = [
   { href: '/convertirpro',   page: 'convertirpro',   ico: 'fa-crown', txt: 'Convertir Pro' },
   { href: '/optimizar',   page: 'optimizar',   ico: 'fa-bolt',         txt: 'Optimizar' },
   { href: '/comprimir',   page: 'comprimir',   ico: 'fa-compress',     txt: 'Comprimir' },
-  { href: '/editar',      page: 'editar',      ico: 'fa-crop-simple',  txt: 'Editar'    },
-  { href: '/curiosidades',page: 'curiosidades',ico: 'fa-lightbulb',    txt: 'Curiosidades' },
+  { href: '/editar',      page: 'editar',      ico: 'fa-crop-simple',  txt: 'Editar'    },  
   { href: '/precios',     page: 'precios',     ico: 'fa-gem',        txt: 'Planes'    },
-  { href: '/acerca',      page: 'acerca',      ico: 'fa-info-circle',  txt: 'Acerca'    },
 ];
 
 // ── NAV — Config visual por rol (nvleft = izquierda, nvright = derecha) ────────
 export const NAV = {
   todos: {
-    nvleft:  [{ href: '/', page: 'inicio', ico: 'fa-house', txt: 'Inicio' }, ...COMUN],
+    nvleft:  [
+      { href: '/', page: 'inicio', ico: 'fa-house', txt: 'Inicio' },
+      ...COMUN,
+      { href: '/curiosidades',page: 'curiosidades',ico: 'fa-lightbulb',    txt: 'Curiosidades' },
+      { href: '/acerca',      page: 'acerca',      ico: 'fa-info-circle',  txt: 'Acerca'    },
+    ],
     nvright: [
       { href: '/descubre', page: 'descubre', ico: 'fa-gauge',       txt: 'Descubre'  },
       { isBtn: true, cls: 'bt_auth registrar', ico: 'fa-user-plus', txt: 'Registrar' },
