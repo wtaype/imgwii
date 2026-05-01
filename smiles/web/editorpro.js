@@ -710,7 +710,7 @@ async function descargarFormato(id, btn) {
   try {
     const q = fmt.id === 'png' ? undefined : expQuality / 100;
     const blob = await canvasToBlob(canvas, `image/${fmt.id}`, q);
-    const name = `${baseName(imgData.name)}_pro.${fmt.ext}`;
+    const name = `${baseName(imgData.name)}.${fmt.ext}`;
     descargarBlob(blob, name);
     Notificacion(`¡${fmt.label} exportado!`, 'success', 2000);
   } catch(e) {
